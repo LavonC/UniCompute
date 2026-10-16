@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UniCompute - Campus Cluster Management & Storage Vault Explorer</title>
+  <style>
+    :root {
+      --bg-dark: #080c14;
+      --card-bg: rgba(15, 23, 42, 0.85);
+      --card-border: rgba(56, 189, 248, 0.2);
+      --cyan: #38bdf8;
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --purple: #a855f7;
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: var(--bg-dark); color: var(--text); padding: 24px; min-height: 100vh; }
+    .nav { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 16px; margin-bottom: 24px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand h1 { font-size: 1.5rem; color: var(--cyan); letter-spacing: -0.5px; }
+    .nav-tabs { display: flex; gap: 8px; }
+    .tab-btn { background: transparent; border: 1px solid var(--card-border); color: var(--text-dim); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+    .tab-btn.active, .tab-btn:hover { background: rgba(56, 189, 248, 0.15); border-color: var(--cyan); color: var(--cyan); }
+    .telemetry-cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 18px; backdrop-filter: blur(10px); }
+    .stat-card .label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; }
+    .stat-card .val { font-size: 1.6rem; font-weight: 700; color: var(--cyan); }
+    .stat-card .sub { font-size: 0.75rem; color: var(--emerald); margin-top: 4px; }
+    .section-title { font-size: 1.1rem; color: var(--cyan); margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+    .dag-container { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; margin-bottom: 24px; }
+    .dag-stages { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; position: relative; }
+    .stage-card { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 14px; position: relative; }
+    .stage-card.active { border-color: var(--cyan); box-shadow: 0 0 15px rgba(56,189,248,0.2); }
+    .stage-card.completed { border-color: var(--emerald); }
+    .stage-header { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 8px; color: var(--text-dim); }
+    .stage-name { font-weight: 600; color: var(--text); font-size: 0.95rem; margin-bottom: 6px; }
+    .badge { padding: 2px 8px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; }
+    .badge-green { background: rgba(16,185,129,0.2); color: var(--emerald); }
+    .badge-blue { background: rgba(56,189,248,0.2); color: var(--cyan); }
+    .badge-purple { background: rgba(168,85,247,0.2); color: var(--purple); }
+    .badge-amber { background: rgba(245,158,11,0.2); color: var(--amber); }
+    .grid-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .grid-table th { text-align: left; padding: 10px 12px; background: rgba(0,0,0,0.5); color: var(--text-dim); border-bottom: 1px solid var(--card-border); }
+    .grid-table td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .cauchy-grid { display: grid; grid-template-columns: repeat(16, 1fr); gap: 6px; margin: 16px 0; }
+    .shard-box { aspect-ratio: 1; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; color: white; cursor: pointer; transition: transform 0.1s; }
+    .shard-box:hover { transform: scale(1.15); z-index: 10; }
+    .shard-data { background: #0284c7; }
+    .shard-parity { background: #059669; }
+    .shard-offline { background: #e11d48; opacity: 0.6; }
+    .shard-anchor { border: 2px solid #facc15; }
+    .gauge-wrapper { display: flex; align-items: center; gap: 20px; padding: 16px; background: rgba(0,0,0,0.3); border-radius: 8px; margin-bottom: 16px; }
+    .log-stream { background: #030712; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 0.8rem; height: 180px; overflow-y: auto; color: #a5f3fc; }
+    .btn { background: #0284c7; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    .btn:hover { background: #0369a1; }
+  </style>
+</head>
+<body>
+  <div class="nav">
+    <div class="brand">
+      <h1>UniCompute</h1>
+      <span class="badge badge-blue">Central Coordinator Control Plane</span>
+    </div>
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('cluster', this)">Cluster DAG Console</button>
+      <button class="tab-btn" onclick="switchTab('storage', this)">Storage Vault & Erasure Explorer</button>
+      <button class="tab-btn" onclick="openSubmitModal()">+ Submit Job</button>
+    </div>
+  </div>
+
+  <!-- Telemetry Cards (§10.2) -->
+  <div class="telemetry-cards">
+    <div class="stat-card">
+      <div class="label">Nodes Online</div>
+      <div class="val" id="stat-nodes">128</div>
+      <div class="sub" id="stat-nodes-sub">74 Campus Labs, 54 Laptops</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Tasks Running</div>
+      <div class="val" id="stat-tasks" style="color: var(--emerald);">342</div>
+      <div class="sub">99.4% Tier 1 Wasm, 0.6% T2/3</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Aggregate Capacity</div>
+      <div class="val" style="color: var(--purple);">1,024 Cores</div>
+      <div class="sub">4.1 TB RAM | 124 TFLOPS</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Storage Vault</div>
+      <div class="val" style="color: var(--amber);">82.4 TB</div>
+      <div class="sub">RS(32, 80) 2.5x Cauchy Vault</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Locality Hit Rate</div>
+      <div class="val" style="color: var(--emerald);" id="stat-locality">84.2%</div>
+      <div class="sub">Saved 2.84 TB Backbone Transit</div>
+    </div>
+  </div>
+
+  <!-- VIEW 1: Cluster & DAG Console -->
+  <div id="view-cluster">
+    <!-- Active DAG Orchestration Visualizer (§10.2, Figure 9) -->
+    <div class="dag-container">
+      <div class="section-title">
+        <span>Interactive DAG Workflow Visualizer: <span style="color: var(--text);" id="dag-title">Job #84920 — Climate Model Parallel Grid Simulation</span></span>
+        <span class="badge badge-green">RUNNING (Wave 3/4)</span>
+      </div>
+
+      <div class="dag-stages">
+        <div class="stage-card completed">
+          <div class="stage-header">
+            <span>STAGE 1</span>
+            <span class="badge badge-green">DONE 4.2s</span>
+          </div>
+          <div class="stage-name">FastCDC Ingestion & Sharding</div>
+          <div style="font-size: 0.8rem; color: var(--text-dim);">Slicing 40 GiB grid into 640 segments via gear rolling hash & MLE AES-256</div>
+        </div>
+
+        <div class="stage-card completed">
+          <div class="stage-header">
+            <span>STAGE 2</span>
+            <span class="badge badge-green">DONE 0.8s</span>
+          </div>
+          <div class="stage-name">PACMan Locality Dispatch</div>
+          <div style="font-size: 0.8rem; color: var(--text-dim);">Matched 28/32 local nodes with (C/Total)^4 convex score in 0.8s</div>
+        </div>
+
+        <div class="stage-card active">
+          <div class="stage-header">
+            <span>STAGE 3</span>
+            <span class="badge badge-blue">81.2% COMPLETE</span>
+          </div>
+          <div class="stage-name">Parallel Wasm Grid Solver</div>
+          <div style="font-size: 0.8rem; color: var(--text-dim);">26/32 sub-tasks complete. Bit-identical IEEE-754 canonical-NaN execution</div>
+          <div style="background: rgba(255,255,255,0.1); height: 6px; border-radius: 3px; margin-top: 10px; overflow: hidden;">
+            <div style="background: var(--cyan); width: 81.2%; height: 100%;"></div>
+          </div>
+        </div>
+
+        <div class="stage-card">
+          <div class="stage-header">
+            <span>STAGE 4</span>
+            <span class="badge" style="background: #334155; color: var(--text-dim);">PENDING</span>
+          </div>
+          <div class="stage-name">Result Reduction & Attestation</div>
+          <div style="font-size: 0.8rem; color: var(--text-dim);">Ed25519 receipt verification and 5-10% probabilistic spot-check auditing</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Node Fleet & Real-time SCTP Log Console -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+      <div class="stat-card">
+        <div class="section-title">
+          <span>Live Node Fleet Telemetry</span>
+          <span style="font-size: 0.8rem; color: var(--text-dim);">Sample of Active Nodes</span>
+        </div>
+        <table class="grid-table">
+          <thead>
+            <tr>
+              <th>Node ID</th>
+              <th>Zone</th>
+              <th>Tier</th>
+              <th>Locality</th>
+              <th>Credit</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="fleet-table-body">
+            <tr>
+              <td>node-lab-01</td>
+              <td><span class="badge badge-purple">Campus Lab</span></td>
+              <td>Tier 1/2/3</td>
+              <td><span class="badge badge-green">Tier R (RAM)</span></td>
+              <td>0.992</td>
+              <td><span style="color: var(--emerald);">Active</span></td>
+            </tr>
+            <tr>
+              <td>node-win11-8f2a</td>
+              <td><span class="badge badge-blue">Dorm Wi-Fi</span></td>
+              <td>Tier 1</td>
+              <td><span class="badge badge-blue">Tier L (NVMe)</span></td>
+              <td>0.964</td>
+              <td><span style="color: var(--emerald);">Active</span></td>
+            </tr>
+            <tr>
+              <td>node-win11-3c44</td>
+              <td><span class="badge badge-amber">Residential</span></td>
+              <td>Tier 1</td>
+              <td><span class="badge" style="background: #334155;">WAN Cold</span></td>
+              <td>0.880</td>
+              <td><span style="color: var(--emerald);">Active</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="stat-card">
+        <div class="section-title">
+          <span>P2P SCTP Stdout & Convergence Stream</span>
+          <span class="badge badge-blue">Live WebRTC DataChannel</span>
+        </div>
+        <div class="log-stream" id="coordinator-log-stream">
+[SCTP Worker 04] Grid iteration 820/1000 - divergence residual: 4.192e-8 (Zero network fetch)
+[SCTP Worker 12] Grid iteration 840/1000 - divergence residual: 3.841e-8 (Tier L hit)
+[SCTP Worker 28] Task complete. Exit 0. Output SHA-256: 3c8e9b01... Generating Ed25519 signature
+[Coordinator] Received execution receipt from node-win11-8f2a. Ed25519 signature verified.
+[Spot-Check] Probabilistic spot-check triggered for task-84920-sub14 (p = 0.068) -> assigned to verifier node-lab-02
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 2: Storage Vault & Erasure-Coding Explorer (§10.3, Figure 10) -->
+  <div id="view-storage" style="display: none;">
+    <div class="stat-card" style="margin-bottom: 24px;">
+      <div class="section-title">
+        <span>Cauchy Reed-Solomon RS(32, 80) Shard Dispersal Matrix</span>
+        <span style="font-size: 0.85rem; color: var(--text-dim);">Inspecting Segment: <code style="color: var(--cyan);" id="inspecting-segment-id">seg_4a8c91f0...</code></span>
+      </div>
+
+      <div class="gauge-wrapper">
+        <div style="flex: 1;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span>Reconstruction Safety Gauge:</span>
+            <span style="font-weight: 700; color: var(--emerald);" id="reconstruction-safety-label">74 / 80 Shards Online (+42 Safety Buffer)</span>
+          </div>
+          <div style="background: #1e293b; height: 16px; border-radius: 8px; overflow: hidden; position: relative;">
+            <div id="reconstruction-gauge-bar" style="background: linear-gradient(90deg, #e11d48, #f59e0b 40%, #10b981 60%); width: 92.5%; height: 100%;"></div>
+            <div style="position: absolute; left: 40%; top: 0; bottom: 0; width: 2px; background: white;" title="Floor: 32"></div>
+            <div style="position: absolute; left: 60%; top: 0; bottom: 0; width: 2px; background: #38bdf8;" title="Lazy Repair: 48"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">
+            <span>0 Shards</span>
+            <span style="color: var(--rose);">32 (Reconstruction Floor)</span>
+            <span style="color: var(--cyan);">48 (Lazy Batched Repair Threshold)</span>
+            <span style="color: var(--emerald);">80 Total Shards</span>
+          </div>
+        </div>
+        <div style="background: rgba(16,185,129,0.1); border: 1px solid var(--emerald); padding: 12px 20px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 0.75rem; color: var(--emerald); font-weight: 600;">REPAIR STATUS</div>
+          <div style="font-size: 1.1rem; font-weight: 700; color: var(--emerald);">DORMANT (SAFE)</div>
+        </div>
+      </div>
+
+      <!-- 80-shard matrix visualizer -->
+      <div style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 8px;">
+        32 Data Shards (D_00..D_31) in Blue, 48 Parity Shards (P_32..P_79) in Green, Gold border = Campus Lab Anchor:
+      </div>
+      <div class="cauchy-grid" id="cauchy-grid-boxes">
+        <!-- Generated dynamically via JS -->
+      </div>
+
+      <div style="display: flex; gap: 24px; font-size: 0.8rem; margin-top: 10px;">
+        <span style="display: flex; align-items: center; gap: 6px;"><div style="width: 12px; height: 12px; background: #0284c7; border-radius: 2px;"></div> Data Shard (D_00..D_31)</span>
+        <span style="display: flex; align-items: center; gap: 6px;"><div style="width: 12px; height: 12px; background: #059669; border-radius: 2px;"></div> Parity Shard (P_32..P_79)</span>
+        <span style="display: flex; align-items: center; gap: 6px;"><div style="width: 12px; height: 12px; border: 2px solid #facc15; border-radius: 2px;"></div> Campus Lab Anchor Pinned</span>
+        <span style="display: flex; align-items: center; gap: 6px;"><div style="width: 12px; height: 12px; background: #e11d48; border-radius: 2px;"></div> Offline / Churn</span>
+      </div>
+    </div>
+
+    <!-- Live Algebraic Stripe Audit Stream -->
+    <div class="stat-card">
+      <div class="section-title">
+        <span>Live Algebraic Stripe Audit Stream (Storj v3 Berlekamp-Welch & 4.2 KB PoR)</span>
+        <span class="badge badge-green">38.4 Stripe Audits/sec</span>
+      </div>
+      <div class="log-stream" id="audit-log-stream">
+[00:01:14] PoR Audit PASS: chal-9b12fe on node-win11-8f2a (shard seg_4a8c_02). Merkle proof 4.18 KB verified.
+[00:01:15] Stripe Audit PASS: Berlekamp-Welch offset 4128 on 74 online shards. Zero algebraic error polynomials.
+[00:01:16] PoR Audit PASS: chal-9b12ff on node-lab-04 (shard seg_4a8c_19). Verified in 1.4 ms.
+[00:01:17] Stripe Audit PASS: Berlekamp-Welch offset 9014. Parity checks hold across all Galois GF(2^8) equations.
+      </div>
+    </div>
+  </div>
+
+  <!-- Job Submission Modal (§10.2) -->
+  <div id="submit-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); z-index: 100; align-items: center; justify-content: center;">
+    <div style="background: #0f172a; border: 1px solid var(--card-border); border-radius: 12px; width: 500px; max-width: 90vw; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+        <h2 style="font-size: 1.2rem; color: var(--cyan);">Submit Task Capsule</h2>
+        <button onclick="closeSubmitModal()" style="background: none; border: none; color: var(--text-dim); font-size: 1.5rem; cursor: pointer;">&times;</button>
+      </div>
+      <form id="submit-job-form" onsubmit="handleJobSubmit(event)">
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Task Name</label>
+          <input type="text" id="modal-task-name" value="Climate Model Parallel Grid Simulation" style="width: 100%; padding: 8px 12px; background: #080c14; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);" required>
+        </div>
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Execution Tier</label>
+          <select id="modal-min-tier" style="width: 100%; padding: 8px 12px; background: #080c14; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);">
+            <option value="1">Tier 1: WebAssembly (WASI) - Zero Admin Default</option>
+            <option value="2">Tier 2: Hardened Container Sandbox (WSL2 / gVisor)</option>
+            <option value="3">Tier 3: Hardware-Accelerated Native GPU</option>
+          </select>
+        </div>
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Entrypoint</label>
+          <input type="text" id="modal-entrypoint" value="main.wasm" style="width: 100%; padding: 8px 12px; background: #080c14; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);" required>
+        </div>
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Required Dataset CID (Optional)</label>
+          <input type="text" id="modal-dataset-cid" value="bafybeih5a6q37_climate_grid" style="width: 100%; padding: 8px 12px; background: #080c14; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);">
+        </div>
+        <div style="margin-bottom: 18px;">
+          <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Instruction Fuel Limit</label>
+          <input type="number" id="modal-fuel" value="50000000" style="width: 100%; padding: 8px 12px; background: #080c14; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);">
+        </div>
+        <div id="modal-status-msg" style="margin-bottom: 12px; font-size: 0.85rem; display: none;"></div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" onclick="closeSubmitModal()" class="tab-btn">Cancel</button>
+          <button type="submit" class="btn">Dispatch Task Capsule</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function switchTab(tab, btn) {
+      document.querySelectorAll('.nav-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      if (tab === 'cluster') {
+        document.getElementById('view-cluster').style.display = 'block';
+        document.getElementById('view-storage').style.display = 'none';
+      } else {
+        document.getElementById('view-cluster').style.display = 'none';
+        document.getElementById('view-storage').style.display = 'block';
+      }
+    }
+
+    function openSubmitModal() {
+      document.getElementById('submit-modal').style.display = 'flex';
+    }
+
+    function closeSubmitModal() {
+      document.getElementById('submit-modal').style.display = 'none';
+    }
+
+    function handleJobSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('modal-task-name').value;
+      const tier = parseInt(document.getElementById('modal-min-tier').value);
+      const entrypoint = document.getElementById('modal-entrypoint').value;
+      const datasetCID = document.getElementById('modal-dataset-cid').value.trim();
+      const fuel = parseInt(document.getElementById('modal-fuel').value) || 50000000;
+      const taskId = 'job-' + Math.floor(Math.random() * 90000 + 10000) + '-task-01';
+
+      const payload = {
+        task_id: taskId,
+        name: name,
+        min_tier: tier,
+        entrypoint: entrypoint,
+        required_datasets: datasetCID ? [datasetCID] : [],
+        fuel_limit: fuel,
+        max_memory_mb: 512
+      };
+
+      const statusDiv = document.getElementById('modal-status-msg');
+      statusDiv.style.display = 'block';
+      statusDiv.style.color = 'var(--cyan)';
+      statusDiv.innerText = 'Authenticating and dispatching to Coordinator...';
+
+      fetch('/api/tasks/sign', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to sign task manifest');
+        return res.json();
+      })
+      .then(signData => {
+        payload.signature = signData.signature;
+        payload.researcher_pub_key = signData.researcher_pub_key;
+        return fetch('/api/tasks/submit', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Submission rejected with HTTP ' + res.status);
+        return res.json();
+      })
+      .then(data => {
+        statusDiv.style.color = 'var(--emerald)';
+        statusDiv.innerText = `Task dispatched! Matched Node: ${data.matched_node || 'Pending'} (${data.locality_tier || 'Scheduled'})`;
+        setTimeout(() => {
+          closeSubmitModal();
+          statusDiv.style.display = 'none';
+        }, 1500);
+      })
+      .catch(err => {
+        statusDiv.style.color = 'var(--rose)';
+        statusDiv.innerText = 'Dispatch error: ' + err.message;
+      });
+    }
+
+    function initCauchyGrid() {
+      fetch('/api/storage/shards')
+        .then(res => res.json())
+        .then(data => {
+          updateCauchyGrid(data);
+        })
+        .catch(err => {
+          console.warn('Failed to fetch /api/storage/shards:', err);
+        });
+    }
+
+    function updateCauchyGrid(data) {
+      if (!data || !data.shards) return;
+
+      const segCode = document.getElementById('inspecting-segment-id');
+      if (segCode && data.segment_id) {
+        segCode.innerText = data.segment_id;
+      }
+
+      const total = data.total_shards || 80;
+      const online = data.online_shards !== undefined ? data.online_shards : data.shards.filter(s => s.online).length;
+      const buffer = Math.max(0, online - 32);
+
+      const safetyLabel = document.getElementById('reconstruction-safety-label');
+      if (safetyLabel) {
+        safetyLabel.innerText = `${online} / ${total} Shards Online (+${buffer} Safety Buffer)`;
+        if (online < 32) {
+          safetyLabel.style.color = 'var(--rose)';
+        } else if (online < 48) {
+          safetyLabel.style.color = 'var(--amber)';
+        } else {
+          safetyLabel.style.color = 'var(--emerald)';
+        }
+      }
+
+      const gaugeBar = document.getElementById('reconstruction-gauge-bar');
+      if (gaugeBar) {
+        const pct = Math.min(100, Math.max(0, (online / total) * 100));
+        gaugeBar.style.width = `${pct}%`;
+      }
+
+      const container = document.getElementById('cauchy-grid-boxes');
+      if (!container) return;
+      container.innerHTML = '';
+
+      data.shards.forEach((s, i) => {
+        const box = document.createElement('div');
+        box.className = 'shard-box';
+        const isData = (s.shard_index < 32) || !s.is_parity;
+        const isAnchor = s.is_anchor || (i < 20);
+        const isOnline = s.online;
+
+        if (!isOnline) {
+          box.classList.add('shard-offline');
+          box.innerText = isData ? `D${s.shard_index}` : `P${s.shard_index}`;
+          box.title = `Shard ${s.shard_index} (${s.shard_id}): Offline`;
+        } else if (isData) {
+          box.classList.add('shard-data');
+          box.innerText = `D${s.shard_index}`;
+          box.title = `Data Shard D_${s.shard_index} (2 MiB) on ${s.node_id || 'online node'}`;
+        } else {
+          box.classList.add('shard-parity');
+          box.innerText = `P${s.shard_index}`;
+          box.title = `Parity Shard P_${s.shard_index} (2 MiB) on ${s.node_id || 'online node'}`;
+        }
+
+        if (isAnchor) {
+          box.classList.add('shard-anchor');
+          box.title += ' [Campus Lab Anchor Pinned]';
+        }
+        container.appendChild(box);
+      });
+    }
+
+    initCauchyGrid();
+
+    // Live cluster polling
+    setInterval(() => {
+      initCauchyGrid();
+      fetch('/api/cluster/status')
+        .then(res => res.json())
+        .then(data => {
+          if (data.nodes_online !== undefined) {
+            document.getElementById('stat-nodes').innerText = data.nodes_online;
+            document.getElementById('stat-nodes-sub').innerText = `${data.lab_nodes || 0} Campus Labs, ${data.laptop_nodes || 0} Laptops`;
+          }
+          if (data.tasks_running !== undefined) {
+            document.getElementById('stat-tasks').innerText = data.tasks_running;
+          }
+          if (data.locality_rate !== undefined) {
+            document.getElementById('stat-locality').innerText = (data.locality_rate * 100).toFixed(1) + '%';
+          }
+          if (data.active_job_title) {
+            document.getElementById('dag-title').innerText = data.active_job_title;
+          }
+          if (data.fleet && data.fleet.length > 0) {
+            const tbody = document.getElementById('fleet-table-body');
+            tbody.innerHTML = '';
+            data.fleet.forEach(n => {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td>${n.id}</td>
+                <td><span class="badge ${n.zone.includes('Lab') ? 'badge-purple' : 'badge-blue'}">${n.zone}</span></td>
+                <td>Tier ${n.tier}</td>
+                <td><span class="badge ${n.locality.includes('R') ? 'badge-green' : 'badge-blue'}">${n.locality}</span></td>
+                <td>${(n.credit || 0.5).toFixed(3)}</td>
+                <td><span style="color: var(--emerald);">${n.online ? 'Active' : 'Offline'}</span></td>
+              `;
+              tbody.appendChild(tr);
+            });
+          }
+        })
+        .catch(e => {});
+    }, 2000);
+  </script>
+</body>
+</html>

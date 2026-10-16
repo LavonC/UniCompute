@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  coordinator:
+    build:
+      context: .
+      dockerfile: Dockerfile.coordinator
+    container_name: unicompute-coordinator
+    ports:
+      - "8443:8443"
+      - "3478:3478/udp"
+    networks:
+      - campus-net
+
+  worker-lab-01:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: unicompute-worker-lab-01
+    command: ["-coordinator", "ws://coordinator:8443/ws", "-id", "node-lab-01", "-zone", "Campus Lab", "-gui-port", "9091"]
+    ports:
+      - "9091:9091"
+    depends_on:
+      - coordinator
+    networks:
+      - campus-net
+
+  worker-dorm-02:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    command: ["-coordinator", "ws://coordinator:8443/ws", "-id", "node-dorm-02", "-zone", "Dorm Wi-Fi", "-gui-port", "9092"]
+    ports:
+      - "9092:9092"
+    depends_on:
+      - coordinator
+    networks:
+      - campus-net
+
+  worker-res-03:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    command: ["-coordinator", "ws://coordinator:8443/ws", "-id", "node-res-03", "-zone", "Residential CGNAT", "-gui-port", "9093"]
+    ports:
+      - "9093:9093"
+    depends_on:
+      - coordinator
+    networks:
+      - campus-net
+
+networks:
+  campus-net:
+    driver: bridge

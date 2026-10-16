@@ -1,0 +1,22 @@
+# Multi-stage production build for UniCompute Worker Node Agent
+FROM golang:1.24-alpine AS builder
+
+WORKDIR /build
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o unicompute-worker ./cmd/worker
+
+FROM alpine:3.20
+
+RUN apk --no-cache add ca-certificates python3 py3-pip
+
+WORKDIR /app
+COPY --from=builder /build/unicompute-worker /app/unicompute-worker
+
+EXPOSE 9090
+
+ENTRYPOINT ["/app/unicompute-worker"]
+CMD ["-coordinator", "ws://coordinator:8443/ws", "-zone", "Campus Lab"]
