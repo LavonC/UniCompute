@@ -80,7 +80,7 @@ func handleIngest() {
 	}
 
 	var filePath string
-	publish := false
+	publish := true
 	var coordArgs []string
 
 	args := os.Args[2:]
@@ -88,6 +88,8 @@ func handleIngest() {
 		arg := args[i]
 		if arg == "--publish" {
 			publish = true
+		} else if arg == "--no-publish" || arg == "--local-only" {
+			publish = false
 		} else if arg == "--coordinator" && i+1 < len(args) {
 			publish = true
 			coordArgs = append(coordArgs, arg, args[i+1])
@@ -175,13 +177,27 @@ func handleIngest() {
 
 	if publish {
 		fmt.Printf("[*] Registering dataset manifest with Coordinator (%s)...\n", coordURL)
+		shardMetas := make([]protocol.ShardMetadata, len(shards))
+		for i, sh := range shards {
+			isData := i < 32
+			shardMetas[i] = protocol.ShardMetadata{
+				ShardID:    fmt.Sprintf("shard-%s-%02d", datasetCID[:min(len(datasetCID), 8)], i),
+				SegmentID:  "seg_" + datasetCID[:min(len(datasetCID), 8)],
+				ShardIndex: i,
+				IsParity:   !isData,
+				IsAnchor:   i < 20,
+				SizeBytes:  int64(sh.Size),
+				Online:     true,
+			}
+		}
+
 		manifest := protocol.DatasetManifest{
 			DatasetCID: datasetCID,
 			Name:       filepath.Base(filePath),
 			TotalBytes: int64(len(data)),
 			Segments: []protocol.SegmentMetadata{
 				{
-					SegmentID:      "seg_" + datasetCID[:8],
+					SegmentID:      "seg_" + datasetCID[:min(len(datasetCID), 8)],
 					DatasetCID:     datasetCID,
 					SegmentIndex:   0,
 					RawSizeBytes:   int64(len(data)),
@@ -189,6 +205,7 @@ func handleIngest() {
 					ParityShards:   48,
 					TotalShards:    80,
 					RootMerkleHash: datasetCID,
+					Shards:         shardMetas,
 				},
 			},
 			ChunkCount:   len(chunks),
@@ -263,13 +280,12 @@ func handleSubmit() {
 	}
 
 	manifest := protocol.Manifest{
-		Version:          "1.0.0",
 		TaskID:           taskID,
 		Name:             filepath.Base(filePath),
 		MinTier:          tier,
 		Entrypoint:       filepath.Base(filePath),
 		RequiredDatasets: datasets,
-		FuelLimit:        50000000,
+		FuelLimit:        500000000,
 		MaxMemoryMB:      512,
 		Args:             []string{},
 		Env:              map[string]string{"MODE": "production"},
@@ -278,17 +294,17 @@ func handleSubmit() {
 	// Sign manifest if researcher key exists
 	var sigHex, pubHex string
 	if kp, err := crypto.LoadPrivateKeyFile("researcher.key"); err == nil {
-		digest, _ := manifest.CanonicalDigest()
-		sigHex = kp.SignHex(digest)
 		pubHex = kp.PublicKeyHex()
 		manifest.ResearcherPubKey = pubHex
+		digest, _ := manifest.CanonicalDigest()
+		sigHex = kp.SignHex(digest)
 	} else {
 		// Generate ephemeral key for CLI submission
 		kp, _ := crypto.GenerateKeyPair()
-		digest, _ := manifest.CanonicalDigest()
-		sigHex = kp.SignHex(digest)
 		pubHex = kp.PublicKeyHex()
 		manifest.ResearcherPubKey = pubHex
+		digest, _ := manifest.CanonicalDigest()
+		sigHex = kp.SignHex(digest)
 	}
 
 	capsule := protocol.TaskCapsule{

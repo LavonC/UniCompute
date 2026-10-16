@@ -10,6 +10,7 @@ import (
 
 	"unicompute/pkg/crypto"
 	"unicompute/pkg/protocol"
+	"unicompute/pkg/web"
 )
 
 func TestCoordinatorTaskSubmissionAuthentication(t *testing.T) {
@@ -207,7 +208,7 @@ func TestCoordinatorStorageShardsAPI(t *testing.T) {
 		t.Fatalf("Failed to initialize coordinator: %v", err)
 	}
 
-	// 1. Initial state with no registered datasets returns 80 shards
+	// 1. Initial state with no registered datasets returns clean empty state
 	req := httptest.NewRequest(http.MethodGet, "/api/storage/shards", nil)
 	w := httptest.NewRecorder()
 	coord.handleStorageShards(w, req)
@@ -223,15 +224,16 @@ func TestCoordinatorStorageShardsAPI(t *testing.T) {
 		ParityShards int                      `json:"parity_shards"`
 		OnlineShards int                      `json:"online_shards"`
 		Shards       []protocol.ShardMetadata `json:"shards"`
+		Status       string                   `json:"status"`
 	}
 	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
 		t.Fatalf("Failed to decode shards response: %v", err)
 	}
-	if resp.TotalShards != 80 || len(resp.Shards) != 80 {
-		t.Errorf("Expected 80 shards, got %d (list len: %d)", resp.TotalShards, len(resp.Shards))
+	if resp.TotalShards != 0 || len(resp.Shards) != 0 {
+		t.Errorf("Expected 0 shards for empty cluster, got %d (list len: %d)", resp.TotalShards, len(resp.Shards))
 	}
-	if resp.DataShards != 32 || resp.ParityShards != 48 {
-		t.Errorf("Expected RS(32, 48), got data: %d, parity: %d", resp.DataShards, resp.ParityShards)
+	if resp.Status != "NO_DATASETS_REGISTERED" {
+		t.Errorf("Expected status NO_DATASETS_REGISTERED, got %s", resp.Status)
 	}
 
 	// 2. Register actual dataset manifest
@@ -303,3 +305,90 @@ func TestCoordinatorStorageShardsAPI(t *testing.T) {
 		t.Errorf("Expected positive total bytes, got %d", total)
 	}
 }
+
+func TestCoordinatorClusterStatusAPI(t *testing.T) {
+	coord, err := NewCoordinatorServer()
+	if err != nil {
+		t.Fatalf("Failed to initialize coordinator: %v", err)
+	}
+
+	// 1. Initial idle state
+	req := httptest.NewRequest(http.MethodGet, "/api/cluster/status", nil)
+	w := httptest.NewRecorder()
+	coord.handleClusterStatus(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("Expected 200 OK from /api/cluster/status, got %d", w.Code)
+	}
+
+	var resp web.ClusterStatusResponse
+	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+		t.Fatalf("Failed to decode cluster status response: %v", err)
+	}
+
+	if resp.NodesOnline != 0 {
+		t.Errorf("Expected 0 nodes online, got %d", resp.NodesOnline)
+	}
+	if resp.TasksRunning != 0 {
+		t.Errorf("Expected 0 tasks running, got %d", resp.TasksRunning)
+	}
+	if resp.ActiveJobTitle != "No active jobs submitted" {
+		t.Errorf("Expected 'No active jobs submitted', got '%s'", resp.ActiveJobTitle)
+	}
+	if len(resp.JobStages) != 0 {
+		t.Errorf("Expected 0 job stages in idle state, got %d", len(resp.JobStages))
+	}
+	if resp.ActiveJob != nil {
+		t.Errorf("Expected ActiveJob to be nil in idle state, got %+v", resp.ActiveJob)
+	}
+	if len(resp.Fleet) != 0 {
+		t.Errorf("Expected empty fleet in idle state, got %d nodes", len(resp.Fleet))
+	}
+
+	// 2. Register a node and submit a task, verify dynamic status
+	nodeKP, _ := crypto.GenerateKeyPair()
+	testNode := &protocol.Node{
+		ID:             "node-status-01",
+		SubnetZone:     protocol.ZoneCampusLab,
+		Online:         true,
+		PublicKey:      nodeKP.PublicKeyHex(),
+		AllocatedCores: 8,
+		AllocatedRAMMB: 16384,
+		MaxTier:        protocol.Tier1Wasm,
+	}
+	coord.onNodeRegister(testNode)
+
+	coord.mu.Lock()
+	coord.tasks["task-job-1"] = &protocol.TaskCapsule{
+		TaskID:  "task-job-1",
+		Name:    "Genomics Test",
+		MinTier: protocol.Tier1Wasm,
+	}
+	coord.taskStatuses["task-job-1"] = protocol.TaskStatusRunning
+	coord.taskAssignments["task-job-1"] = "node-status-01"
+	coord.mu.Unlock()
+
+	req2 := httptest.NewRequest(http.MethodGet, "/api/cluster/status", nil)
+	w2 := httptest.NewRecorder()
+	coord.handleClusterStatus(w2, req2)
+
+	var resp2 web.ClusterStatusResponse
+	_ = json.NewDecoder(w2.Body).Decode(&resp2)
+
+	if resp2.NodesOnline != 1 || resp2.LabNodes != 1 {
+		t.Errorf("Expected 1 lab node online, got %d (lab: %d)", resp2.NodesOnline, resp2.LabNodes)
+	}
+	if resp2.TasksRunning != 1 {
+		t.Errorf("Expected 1 running task, got %d", resp2.TasksRunning)
+	}
+	if len(resp2.JobStages) != 4 {
+		t.Errorf("Expected 4 DAG stages, got %d", len(resp2.JobStages))
+	}
+	if resp2.ActiveJob == nil || resp2.ActiveJob.Status != string(protocol.TaskStatusRunning) {
+		t.Errorf("Expected active running job, got %+v", resp2.ActiveJob)
+	}
+	if len(resp2.Fleet) != 1 || resp2.Fleet[0].ID != "node-status-01" {
+		t.Errorf("Expected node-status-01 in fleet, got %+v", resp2.Fleet)
+	}
+}
+

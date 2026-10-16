@@ -76,28 +76,28 @@
   <div class="telemetry-cards">
     <div class="stat-card">
       <div class="label">Nodes Online</div>
-      <div class="val" id="stat-nodes">128</div>
-      <div class="sub" id="stat-nodes-sub">74 Campus Labs, 54 Laptops</div>
+      <div class="val" id="stat-nodes">0</div>
+      <div class="sub" id="stat-nodes-sub">0 Campus Labs, 0 Laptops</div>
     </div>
     <div class="stat-card">
       <div class="label">Tasks Running</div>
-      <div class="val" id="stat-tasks" style="color: var(--emerald);">342</div>
-      <div class="sub">99.4% Tier 1 Wasm, 0.6% T2/3</div>
+      <div class="val" id="stat-tasks" style="color: var(--emerald);">0</div>
+      <div class="sub" id="stat-tasks-sub">0 Active Tasks</div>
     </div>
     <div class="stat-card">
       <div class="label">Aggregate Capacity</div>
-      <div class="val" style="color: var(--purple);">1,024 Cores</div>
-      <div class="sub">4.1 TB RAM | 124 TFLOPS</div>
+      <div class="val" id="stat-capacity" style="color: var(--purple);">0 Cores</div>
+      <div class="sub" id="stat-capacity-sub">0.0 GB RAM</div>
     </div>
     <div class="stat-card">
       <div class="label">Storage Vault</div>
-      <div class="val" style="color: var(--amber);">82.4 TB</div>
-      <div class="sub">RS(32, 80) 2.5x Cauchy Vault</div>
+      <div class="val" id="stat-storage" style="color: var(--amber);">0 B</div>
+      <div class="sub" id="stat-storage-sub">RS(32, 80) Cauchy Vault (0 Segments)</div>
     </div>
     <div class="stat-card">
       <div class="label">Locality Hit Rate</div>
-      <div class="val" style="color: var(--emerald);" id="stat-locality">84.2%</div>
-      <div class="sub">Saved 2.84 TB Backbone Transit</div>
+      <div class="val" style="color: var(--emerald);" id="stat-locality">0.0%</div>
+      <div class="sub" id="stat-locality-sub">PACMan Convex Cache Hits</div>
     </div>
   </div>
 
@@ -106,58 +106,55 @@
     <!-- Active DAG Orchestration Visualizer (§10.2, Figure 9) -->
     <div class="dag-container">
       <div class="section-title">
-        <span>Interactive DAG Workflow Visualizer: <span style="color: var(--text);" id="dag-title">Job #84920 — Climate Model Parallel Grid Simulation</span></span>
-        <span class="badge badge-green">RUNNING (Wave 3/4)</span>
+        <span>Interactive DAG Workflow Visualizer: <span style="color: var(--text);" id="dag-title">No active jobs submitted</span></span>
+        <span class="badge" id="dag-badge" style="background: #334155; color: var(--text-dim);">IDLE</span>
       </div>
 
-      <div class="dag-stages">
-        <div class="stage-card completed">
+      <div class="dag-stages" id="dag-stages-container">
+        <div class="stage-card">
           <div class="stage-header">
             <span>STAGE 1</span>
-            <span class="badge badge-green">DONE 4.2s</span>
+            <span class="badge" style="background: #334155; color: var(--text-dim);">IDLE</span>
           </div>
           <div class="stage-name">FastCDC Ingestion & Sharding</div>
-          <div style="font-size: 0.8rem; color: var(--text-dim);">Slicing 40 GiB grid into 640 segments via gear rolling hash & MLE AES-256</div>
+          <div style="font-size: 0.8rem; color: var(--text-dim);">Awaiting dataset ingestion via FastCDC & Cauchy RS(32, 80)</div>
         </div>
 
-        <div class="stage-card completed">
+        <div class="stage-card">
           <div class="stage-header">
             <span>STAGE 2</span>
-            <span class="badge badge-green">DONE 0.8s</span>
+            <span class="badge" style="background: #334155; color: var(--text-dim);">IDLE</span>
           </div>
           <div class="stage-name">PACMan Locality Dispatch</div>
-          <div style="font-size: 0.8rem; color: var(--text-dim);">Matched 28/32 local nodes with (C/Total)^4 convex score in 0.8s</div>
+          <div style="font-size: 0.8rem; color: var(--text-dim);">Awaiting task submission to match local worker nodes</div>
         </div>
 
-        <div class="stage-card active">
+        <div class="stage-card">
           <div class="stage-header">
             <span>STAGE 3</span>
-            <span class="badge badge-blue">81.2% COMPLETE</span>
+            <span class="badge" style="background: #334155; color: var(--text-dim);">IDLE</span>
           </div>
-          <div class="stage-name">Parallel Wasm Grid Solver</div>
-          <div style="font-size: 0.8rem; color: var(--text-dim);">26/32 sub-tasks complete. Bit-identical IEEE-754 canonical-NaN execution</div>
-          <div style="background: rgba(255,255,255,0.1); height: 6px; border-radius: 3px; margin-top: 10px; overflow: hidden;">
-            <div style="background: var(--cyan); width: 81.2%; height: 100%;"></div>
-          </div>
+          <div class="stage-name">Sandbox Execution</div>
+          <div style="font-size: 0.8rem; color: var(--text-dim);">Awaiting execution dispatch across donor node sandboxes</div>
         </div>
 
         <div class="stage-card">
           <div class="stage-header">
             <span>STAGE 4</span>
-            <span class="badge" style="background: #334155; color: var(--text-dim);">PENDING</span>
+            <span class="badge" style="background: #334155; color: var(--text-dim);">IDLE</span>
           </div>
-          <div class="stage-name">Result Reduction & Attestation</div>
-          <div style="font-size: 0.8rem; color: var(--text-dim);">Ed25519 receipt verification and 5-10% probabilistic spot-check auditing</div>
+          <div class="stage-name">Result Attestation & Auditing</div>
+          <div style="font-size: 0.8rem; color: var(--text-dim);">Awaiting Ed25519 receipts and spot-check verification</div>
         </div>
       </div>
     </div>
 
-    <!-- Node Fleet & Real-time SCTP Log Console -->
+    <!-- Node Fleet & Real-time Log Console -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
       <div class="stat-card">
         <div class="section-title">
           <span>Live Node Fleet Telemetry</span>
-          <span style="font-size: 0.8rem; color: var(--text-dim);">Sample of Active Nodes</span>
+          <span style="font-size: 0.8rem; color: var(--text-dim);">Connected Nodes</span>
         </div>
         <table class="grid-table">
           <thead>
@@ -172,28 +169,7 @@
           </thead>
           <tbody id="fleet-table-body">
             <tr>
-              <td>node-lab-01</td>
-              <td><span class="badge badge-purple">Campus Lab</span></td>
-              <td>Tier 1/2/3</td>
-              <td><span class="badge badge-green">Tier R (RAM)</span></td>
-              <td>0.992</td>
-              <td><span style="color: var(--emerald);">Active</span></td>
-            </tr>
-            <tr>
-              <td>node-win11-8f2a</td>
-              <td><span class="badge badge-blue">Dorm Wi-Fi</span></td>
-              <td>Tier 1</td>
-              <td><span class="badge badge-blue">Tier L (NVMe)</span></td>
-              <td>0.964</td>
-              <td><span style="color: var(--emerald);">Active</span></td>
-            </tr>
-            <tr>
-              <td>node-win11-3c44</td>
-              <td><span class="badge badge-amber">Residential</span></td>
-              <td>Tier 1</td>
-              <td><span class="badge" style="background: #334155;">WAN Cold</span></td>
-              <td>0.880</td>
-              <td><span style="color: var(--emerald);">Active</span></td>
+              <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 24px;">No nodes connected. Run worker agents to join the cluster fleet.</td>
             </tr>
           </tbody>
         </table>
@@ -201,15 +177,11 @@
 
       <div class="stat-card">
         <div class="section-title">
-          <span>P2P SCTP Stdout & Convergence Stream</span>
-          <span class="badge badge-blue">Live WebRTC DataChannel</span>
+          <span>Control Plane & Convergence Stream</span>
+          <span class="badge badge-blue">Live Control Events</span>
         </div>
         <div class="log-stream" id="coordinator-log-stream">
-[SCTP Worker 04] Grid iteration 820/1000 - divergence residual: 4.192e-8 (Zero network fetch)
-[SCTP Worker 12] Grid iteration 840/1000 - divergence residual: 3.841e-8 (Tier L hit)
-[SCTP Worker 28] Task complete. Exit 0. Output SHA-256: 3c8e9b01... Generating Ed25519 signature
-[Coordinator] Received execution receipt from node-win11-8f2a. Ed25519 signature verified.
-[Spot-Check] Probabilistic spot-check triggered for task-84920-sub14 (p = 0.068) -> assigned to verifier node-lab-02
+[Control Plane] UniCompute coordinator initialized. Waiting for worker node connections...
         </div>
       </div>
     </div>
@@ -220,17 +192,17 @@
     <div class="stat-card" style="margin-bottom: 24px;">
       <div class="section-title">
         <span>Cauchy Reed-Solomon RS(32, 80) Shard Dispersal Matrix</span>
-        <span style="font-size: 0.85rem; color: var(--text-dim);">Inspecting Segment: <code style="color: var(--cyan);" id="inspecting-segment-id">seg_4a8c91f0...</code></span>
+        <span style="font-size: 0.85rem; color: var(--text-dim);">Inspecting Segment: <code style="color: var(--cyan);" id="inspecting-segment-id">None (No datasets registered yet)</code></span>
       </div>
 
       <div class="gauge-wrapper">
         <div style="flex: 1;">
           <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
             <span>Reconstruction Safety Gauge:</span>
-            <span style="font-weight: 700; color: var(--emerald);" id="reconstruction-safety-label">74 / 80 Shards Online (+42 Safety Buffer)</span>
+            <span style="font-weight: 700; color: var(--text-dim);" id="reconstruction-safety-label">0 / 0 Shards Online (No datasets registered)</span>
           </div>
           <div style="background: #1e293b; height: 16px; border-radius: 8px; overflow: hidden; position: relative;">
-            <div id="reconstruction-gauge-bar" style="background: linear-gradient(90deg, #e11d48, #f59e0b 40%, #10b981 60%); width: 92.5%; height: 100%;"></div>
+            <div id="reconstruction-gauge-bar" style="background: linear-gradient(90deg, #e11d48, #f59e0b 40%, #10b981 60%); width: 0%; height: 100%;"></div>
             <div style="position: absolute; left: 40%; top: 0; bottom: 0; width: 2px; background: white;" title="Floor: 32"></div>
             <div style="position: absolute; left: 60%; top: 0; bottom: 0; width: 2px; background: #38bdf8;" title="Lazy Repair: 48"></div>
           </div>
@@ -241,9 +213,9 @@
             <span style="color: var(--emerald);">80 Total Shards</span>
           </div>
         </div>
-        <div style="background: rgba(16,185,129,0.1); border: 1px solid var(--emerald); padding: 12px 20px; border-radius: 8px; text-align: center;">
-          <div style="font-size: 0.75rem; color: var(--emerald); font-weight: 600;">REPAIR STATUS</div>
-          <div style="font-size: 1.1rem; font-weight: 700; color: var(--emerald);">DORMANT (SAFE)</div>
+        <div id="repair-status-box" style="background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); padding: 12px 20px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 0.75rem; color: var(--text-dim); font-weight: 600;">REPAIR STATUS</div>
+          <div id="repair-status-text" style="font-size: 1.1rem; font-weight: 700; color: var(--text-dim);">IDLE (EMPTY)</div>
         </div>
       </div>
 
@@ -252,7 +224,7 @@
         32 Data Shards (D_00..D_31) in Blue, 48 Parity Shards (P_32..P_79) in Green, Gold border = Campus Lab Anchor:
       </div>
       <div class="cauchy-grid" id="cauchy-grid-boxes">
-        <!-- Generated dynamically via JS -->
+        <!-- Rendered dynamically via JS -->
       </div>
 
       <div style="display: flex; gap: 24px; font-size: 0.8rem; margin-top: 10px;">
@@ -266,14 +238,11 @@
     <!-- Live Algebraic Stripe Audit Stream -->
     <div class="stat-card">
       <div class="section-title">
-        <span>Live Algebraic Stripe Audit Stream (Storj v3 Berlekamp-Welch & 4.2 KB PoR)</span>
-        <span class="badge badge-green">38.4 Stripe Audits/sec</span>
+        <span>Live Storage Audit Stream</span>
+        <span class="badge badge-green">Real-time Audits</span>
       </div>
       <div class="log-stream" id="audit-log-stream">
-[00:01:14] PoR Audit PASS: chal-9b12fe on node-win11-8f2a (shard seg_4a8c_02). Merkle proof 4.18 KB verified.
-[00:01:15] Stripe Audit PASS: Berlekamp-Welch offset 4128 on 74 online shards. Zero algebraic error polynomials.
-[00:01:16] PoR Audit PASS: chal-9b12ff on node-lab-04 (shard seg_4a8c_19). Verified in 1.4 ms.
-[00:01:17] Stripe Audit PASS: Berlekamp-Welch offset 9014. Parity checks hold across all Galois GF(2^8) equations.
+[Storage Audit] Audit engine initialized. Waiting for dataset shard registration...
       </div>
     </div>
   </div>
@@ -288,7 +257,7 @@
       <form id="submit-job-form" onsubmit="handleJobSubmit(event)">
         <div style="margin-bottom: 14px;">
           <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Task Name</label>
-          <input type="text" id="modal-task-name" value="Climate Model Parallel Grid Simulation" style="width: 100%; padding: 8px 12px; background: #080c14; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);" required>
+          <input type="text" id="modal-task-name" placeholder="e.g. Genomic Sequence Analysis" style="width: 100%; padding: 8px 12px; background: #080c14; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);" required>
         </div>
         <div style="margin-bottom: 14px;">
           <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Execution Tier</label>
@@ -300,15 +269,15 @@
         </div>
         <div style="margin-bottom: 14px;">
           <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Entrypoint</label>
-          <input type="text" id="modal-entrypoint" value="main.wasm" style="width: 100%; padding: 8px 12px; background: #080c14; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);" required>
+          <input type="text" id="modal-entrypoint" placeholder="e.g. task.wasm" value="task.wasm" style="width: 100%; padding: 8px 12px; background: #080c14; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);" required>
         </div>
         <div style="margin-bottom: 14px;">
           <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Required Dataset CID (Optional)</label>
-          <input type="text" id="modal-dataset-cid" value="bafybeih5a6q37_climate_grid" style="width: 100%; padding: 8px 12px; background: #080c14; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);">
+          <input type="text" id="modal-dataset-cid" placeholder="Optional (e.g. CID from unicompute ingest)" style="width: 100%; padding: 8px 12px; background: #080c14; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);">
         </div>
         <div style="margin-bottom: 18px;">
           <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Instruction Fuel Limit</label>
-          <input type="number" id="modal-fuel" value="50000000" style="width: 100%; padding: 8px 12px; background: #080c14; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);">
+          <input type="number" id="modal-fuel" value="500000000" style="width: 100%; padding: 8px 12px; background: #080c14; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);">
         </div>
         <div id="modal-status-msg" style="margin-bottom: 12px; font-size: 0.85rem; display: none;"></div>
         <div style="display: flex; justify-content: flex-end; gap: 10px;">
@@ -320,6 +289,19 @@
   </div>
 
   <script>
+    function formatBytes(bytes) {
+      if (!bytes || bytes <= 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return (bytes / Math.pow(k, i)).toFixed(1) + ' ' + sizes[i];
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
     function switchTab(tab, btn) {
       document.querySelectorAll('.nav-tabs .tab-btn').forEach(b => b.classList.remove('active'));
       if (btn) btn.classList.add('active');
@@ -346,7 +328,7 @@
       const tier = parseInt(document.getElementById('modal-min-tier').value);
       const entrypoint = document.getElementById('modal-entrypoint').value;
       const datasetCID = document.getElementById('modal-dataset-cid').value.trim();
-      const fuel = parseInt(document.getElementById('modal-fuel').value) || 50000000;
+      const fuel = parseInt(document.getElementById('modal-fuel').value) || 500000000;
       const taskId = 'job-' + Math.floor(Math.random() * 90000 + 10000) + '-task-01';
 
       const payload = {
@@ -412,9 +394,34 @@
     }
 
     function updateCauchyGrid(data) {
-      if (!data || !data.shards) return;
+      if (!data) return;
 
       const segCode = document.getElementById('inspecting-segment-id');
+      const safetyLabel = document.getElementById('reconstruction-safety-label');
+      const gaugeBar = document.getElementById('reconstruction-gauge-bar');
+      const container = document.getElementById('cauchy-grid-boxes');
+      const repairBox = document.getElementById('repair-status-box');
+      const repairText = document.getElementById('repair-status-text');
+
+      if (!data.shards || data.shards.length === 0) {
+        if (segCode) segCode.innerText = 'None (No datasets registered yet)';
+        if (safetyLabel) {
+          safetyLabel.innerText = '0 / 0 Shards Online (No datasets registered)';
+          safetyLabel.style.color = 'var(--text-dim)';
+        }
+        if (gaugeBar) gaugeBar.style.width = '0%';
+        if (repairBox && repairText) {
+          repairBox.style.borderColor = 'var(--card-border)';
+          repairBox.style.background = 'rgba(255,255,255,0.05)';
+          repairText.innerText = 'IDLE (EMPTY)';
+          repairText.style.color = 'var(--text-dim)';
+        }
+        if (container) {
+          container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 28px; color: var(--text-dim); font-size: 0.9rem;">No dataset shards in storage vault. Ingest a dataset with <code>unicompute ingest &lt;file&gt; --publish</code> to inspect Cauchy RS(32, 80) shard dispersal.</div>';
+        }
+        return;
+      }
+
       if (segCode && data.segment_id) {
         segCode.innerText = data.segment_id;
       }
@@ -423,7 +430,6 @@
       const online = data.online_shards !== undefined ? data.online_shards : data.shards.filter(s => s.online).length;
       const buffer = Math.max(0, online - 32);
 
-      const safetyLabel = document.getElementById('reconstruction-safety-label');
       if (safetyLabel) {
         safetyLabel.innerText = `${online} / ${total} Shards Online (+${buffer} Safety Buffer)`;
         if (online < 32) {
@@ -435,13 +441,30 @@
         }
       }
 
-      const gaugeBar = document.getElementById('reconstruction-gauge-bar');
       if (gaugeBar) {
         const pct = Math.min(100, Math.max(0, (online / total) * 100));
         gaugeBar.style.width = `${pct}%`;
       }
 
-      const container = document.getElementById('cauchy-grid-boxes');
+      if (repairBox && repairText) {
+        if (data.under_repair) {
+          repairBox.style.borderColor = 'var(--amber)';
+          repairBox.style.background = 'rgba(245,158,11,0.1)';
+          repairText.innerText = 'REPAIRING';
+          repairText.style.color = 'var(--amber)';
+        } else if (online < 48) {
+          repairBox.style.borderColor = 'var(--rose)';
+          repairBox.style.background = 'rgba(244,63,94,0.1)';
+          repairText.innerText = 'DEGRADED';
+          repairText.style.color = 'var(--rose)';
+        } else {
+          repairBox.style.borderColor = 'var(--emerald)';
+          repairBox.style.background = 'rgba(16,185,129,0.1)';
+          repairText.innerText = 'DORMANT (SAFE)';
+          repairText.style.color = 'var(--emerald)';
+        }
+      }
+
       if (!container) return;
       container.innerHTML = '';
 
@@ -488,6 +511,16 @@
           }
           if (data.tasks_running !== undefined) {
             document.getElementById('stat-tasks').innerText = data.tasks_running;
+            document.getElementById('stat-tasks-sub').innerText = `${data.tasks_running} Active Tasks`;
+          }
+          if (data.total_cores !== undefined) {
+            document.getElementById('stat-capacity').innerText = `${data.total_cores} Cores`;
+            const ramGB = (data.total_ram_mb ? (data.total_ram_mb / 1024).toFixed(1) : '0.0');
+            document.getElementById('stat-capacity-sub').innerText = `${ramGB} GB RAM`;
+          }
+          if (data.storage_bytes !== undefined) {
+            document.getElementById('stat-storage').innerText = formatBytes(data.storage_bytes);
+            document.getElementById('stat-storage-sub').innerText = `RS(32, 80) Cauchy Vault (${data.total_segments || 0} Segments)`;
           }
           if (data.locality_rate !== undefined) {
             document.getElementById('stat-locality').innerText = (data.locality_rate * 100).toFixed(1) + '%';
@@ -495,21 +528,107 @@
           if (data.active_job_title) {
             document.getElementById('dag-title').innerText = data.active_job_title;
           }
-          if (data.fleet && data.fleet.length > 0) {
-            const tbody = document.getElementById('fleet-table-body');
-            tbody.innerHTML = '';
-            data.fleet.forEach(n => {
-              const tr = document.createElement('tr');
-              tr.innerHTML = `
-                <td>${n.id}</td>
-                <td><span class="badge ${n.zone.includes('Lab') ? 'badge-purple' : 'badge-blue'}">${n.zone}</span></td>
-                <td>Tier ${n.tier}</td>
-                <td><span class="badge ${n.locality.includes('R') ? 'badge-green' : 'badge-blue'}">${n.locality}</span></td>
-                <td>${(n.credit || 0.5).toFixed(3)}</td>
-                <td><span style="color: var(--emerald);">${n.online ? 'Active' : 'Offline'}</span></td>
+
+          const dagBadge = document.getElementById('dag-badge');
+          if (dagBadge) {
+            if (data.active_job && data.active_job.status) {
+              dagBadge.innerText = data.active_job.status;
+              dagBadge.className = 'badge badge-green';
+              dagBadge.style = '';
+            } else {
+              dagBadge.innerText = 'IDLE';
+              dagBadge.className = 'badge';
+              dagBadge.style = 'background: #334155; color: var(--text-dim);';
+            }
+          }
+
+          // Dynamic DAG Stages
+          const stagesContainer = document.getElementById('dag-stages-container');
+          if (stagesContainer) {
+            if (data.job_stages && data.job_stages.length > 0) {
+              stagesContainer.innerHTML = '';
+              data.job_stages.forEach((st, idx) => {
+                const card = document.createElement('div');
+                const isDone = st.status === 'completed';
+                const isRunning = st.status === 'running';
+                card.className = 'stage-card' + (isRunning ? ' active' : isDone ? ' completed' : '');
+                const badgeClass = isDone ? 'badge badge-green' : isRunning ? 'badge badge-blue' : 'badge';
+                const badgeStyle = (!isDone && !isRunning) ? 'background: #334155; color: var(--text-dim);' : '';
+                const badgeText = isDone ? 'DONE' : isRunning ? 'RUNNING' : 'PENDING';
+                card.innerHTML = `
+                  <div class="stage-header">
+                    <span>STAGE ${idx + 1}</span>
+                    <span class="${badgeClass}" style="${badgeStyle}">${badgeText}</span>
+                  </div>
+                  <div class="stage-name">${escapeHtml(st.name)}</div>
+                  <div style="font-size: 0.8rem; color: var(--text-dim);">${escapeHtml(st.description || '')}</div>
+                `;
+                stagesContainer.appendChild(card);
+              });
+            } else {
+              stagesContainer.innerHTML = `
+                <div class="stage-card">
+                  <div class="stage-header"><span>STAGE 1</span><span class="badge" style="background: #334155; color: var(--text-dim);">IDLE</span></div>
+                  <div class="stage-name">FastCDC Ingestion & Sharding</div>
+                  <div style="font-size: 0.8rem; color: var(--text-dim);">Awaiting dataset ingestion via FastCDC & Cauchy RS(32, 80)</div>
+                </div>
+                <div class="stage-card">
+                  <div class="stage-header"><span>STAGE 2</span><span class="badge" style="background: #334155; color: var(--text-dim);">IDLE</span></div>
+                  <div class="stage-name">PACMan Locality Dispatch</div>
+                  <div style="font-size: 0.8rem; color: var(--text-dim);">Awaiting task submission to match local worker nodes</div>
+                </div>
+                <div class="stage-card">
+                  <div class="stage-header"><span>STAGE 3</span><span class="badge" style="background: #334155; color: var(--text-dim);">IDLE</span></div>
+                  <div class="stage-name">Sandbox Execution</div>
+                  <div style="font-size: 0.8rem; color: var(--text-dim);">Awaiting execution dispatch across donor node sandboxes</div>
+                </div>
+                <div class="stage-card">
+                  <div class="stage-header"><span>STAGE 4</span><span class="badge" style="background: #334155; color: var(--text-dim);">IDLE</span></div>
+                  <div class="stage-name">Result Attestation & Auditing</div>
+                  <div style="font-size: 0.8rem; color: var(--text-dim);">Awaiting Ed25519 receipts and spot-check verification</div>
+                </div>
               `;
-              tbody.appendChild(tr);
-            });
+            }
+          }
+
+          // Live Node Fleet table
+          const tbody = document.getElementById('fleet-table-body');
+          if (tbody) {
+            if (data.fleet && data.fleet.length > 0) {
+              tbody.innerHTML = '';
+              data.fleet.forEach(n => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                  <td>${escapeHtml(n.id)}</td>
+                  <td><span class="badge ${n.zone.includes('Lab') ? 'badge-purple' : 'badge-blue'}">${escapeHtml(n.zone)}</span></td>
+                  <td>Tier ${n.tier}</td>
+                  <td><span class="badge ${n.locality.includes('R') ? 'badge-green' : 'badge-blue'}">${escapeHtml(n.locality)}</span></td>
+                  <td>${(n.credit || 0.5).toFixed(3)}</td>
+                  <td><span style="color: ${n.online ? 'var(--emerald)' : 'var(--rose)'};">${n.online ? 'Active' : 'Offline'}</span></td>
+                `;
+                tbody.appendChild(tr);
+              });
+            } else {
+              tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-dim); padding: 24px;">No nodes connected. Run worker agents to join the cluster fleet.</td></tr>';
+            }
+          }
+
+          // Live Control Plane logs
+          if (data.logs && data.logs.length > 0) {
+            const coordLogs = document.getElementById('coordinator-log-stream');
+            if (coordLogs) {
+              coordLogs.innerText = data.logs.join('\n');
+              coordLogs.scrollTop = coordLogs.scrollHeight;
+            }
+          }
+
+          // Live Storage Audit logs
+          if (data.audit_logs && data.audit_logs.length > 0) {
+            const auditLogs = document.getElementById('audit-log-stream');
+            if (auditLogs) {
+              auditLogs.innerText = data.audit_logs.join('\n');
+              auditLogs.scrollTop = auditLogs.scrollHeight;
+            }
           }
         })
         .catch(e => {});

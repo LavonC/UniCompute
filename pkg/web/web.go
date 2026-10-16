@@ -12,15 +12,39 @@ var CoordinatorUIHTML []byte
 //go:embed worker_ui.html
 var WorkerUIHTML []byte
 
+// JobStage models a single stage in the DAG pipeline.
+type JobStage struct {
+	Name        string `json:"name"`
+	Status      string `json:"status"` // "pending", "running", "completed", "idle"
+	Description string `json:"description"`
+	Duration    string `json:"duration,omitempty"`
+}
+
+// ActiveJobInfo models the active running or recently submitted job.
+type ActiveJobInfo struct {
+	JobID  string     `json:"job_id"`
+	Title  string     `json:"title"`
+	Status string     `json:"status"`
+	Stages []JobStage `json:"stages"`
+}
+
 // ClusterStatusResponse models cluster telemetry sent to the coordinator UI.
 type ClusterStatusResponse struct {
-	NodesOnline     int               `json:"nodes_online"`
-	LabNodes        int               `json:"lab_nodes"`
-	LaptopNodes     int               `json:"laptop_nodes"`
-	TasksRunning    int               `json:"tasks_running"`
-	LocalityRate    float64           `json:"locality_rate"`
-	ActiveJobTitle  string            `json:"active_job_title"`
-	Fleet           []FleetNodeStatus `json:"fleet"`
+	NodesOnline    int               `json:"nodes_online"`
+	LabNodes       int               `json:"lab_nodes"`
+	LaptopNodes    int               `json:"laptop_nodes"`
+	TasksRunning   int               `json:"tasks_running"`
+	LocalityRate   float64           `json:"locality_rate"`
+	ActiveJobTitle string            `json:"active_job_title"`
+	TotalCores     int               `json:"total_cores"`
+	TotalRAMMB     int64             `json:"total_ram_mb"`
+	StorageBytes   int64             `json:"storage_bytes"`
+	TotalSegments  int               `json:"total_segments"`
+	Fleet          []FleetNodeStatus `json:"fleet"`
+	ActiveJob      *ActiveJobInfo    `json:"active_job,omitempty"`
+	JobStages      []JobStage        `json:"job_stages,omitempty"`
+	Logs           []string          `json:"logs,omitempty"`
+	AuditLogs      []string          `json:"audit_logs,omitempty"`
 }
 
 type FleetNodeStatus struct {

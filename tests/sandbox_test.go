@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"os"
 	"testing"
 	"time"
 
@@ -68,6 +69,46 @@ func TestTier1WasmSandboxExecution(t *testing.T) {
 
 	if res.OutputCID != res2.OutputCID {
 		t.Errorf("Nondeterministic execution: OutputCID 1 (%s) != OutputCID 2 (%s)", res.OutputCID, res2.OutputCID)
+	}
+}
+
+func TestTier1GenomicsWasmSampleExecution(t *testing.T) {
+	wasmData, err := os.ReadFile("../test_data/task.wasm")
+	if err != nil {
+		t.Fatalf("Failed to read test_data/task.wasm: %v", err)
+	}
+	fastaData, err := os.ReadFile("../test_data/genomic_sample.fa")
+	if err != nil {
+		t.Fatalf("Failed to read test_data/genomic_sample.fa: %v", err)
+	}
+
+	sb := sandbox.NewTier1WasmSandbox()
+	req := &sandbox.ExecutionRequest{
+		TaskID:      "task-genomics-test-01",
+		MinTier:     protocol.Tier1Wasm,
+		Entrypoint:  "task.wasm",
+		CodePayload: wasmData,
+		InputMounts: map[string][]byte{
+			"genomic_sample.fa": fastaData,
+		},
+		MaxMemoryMB: 256,
+		FuelLimit:   500000000,
+		Timeout:     10 * time.Second,
+	}
+
+	res, err := sb.Execute(context.Background(), req)
+	if err != nil {
+		stderrStr := ""
+		if res != nil {
+			stderrStr = string(res.Stderr)
+		}
+		t.Fatalf("Execution of task.wasm failed: %v, stderr: %s", err, stderrStr)
+	}
+	if res.ExitCode != 0 {
+		t.Fatalf("Expected exit code 0, got %d, stderr: %s", res.ExitCode, string(res.Stderr))
+	}
+	if len(res.OutputFiles) == 0 {
+		t.Fatalf("Expected output files, got none")
 	}
 }
 
