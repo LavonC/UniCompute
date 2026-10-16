@@ -149,6 +149,41 @@
       </div>
     </div>
 
+    <!-- Task Scientific Results & Verified Output Card -->
+    <div class="dag-container" id="task-output-container" style="display: none; border-color: rgba(16, 185, 129, 0.4); background: rgba(15, 23, 42, 0.95); margin-bottom: 24px;">
+      <div class="section-title">
+        <span style="color: var(--emerald); display: flex; align-items: center; gap: 8px;">
+          <span style="color: #10b981; font-weight: bold;">&#x2714;</span> Verified Scientific Execution Results & Task Output Payload
+        </span>
+        <span class="badge badge-green" id="task-output-badge">ED25519 VERIFIED</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; font-size: 0.82rem;">
+        <div style="background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px;">
+          <span style="color: var(--text-dim); display: block;">Task ID</span>
+          <span style="color: var(--cyan); font-weight: 600; font-family: monospace;" id="out-task-id">-</span>
+        </div>
+        <div style="background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px;">
+          <span style="color: var(--text-dim); display: block;">Executed By Node</span>
+          <span style="color: var(--emerald); font-weight: 600;" id="out-worker-node">-</span>
+        </div>
+        <div style="background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px;">
+          <span style="color: var(--text-dim); display: block;">Instruction Fuel Consumed</span>
+          <span style="color: var(--purple); font-weight: 600;" id="out-fuel">-</span>
+        </div>
+        <div style="background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px;">
+          <span style="color: var(--text-dim); display: block;">Output Content ID (CID)</span>
+          <span style="color: var(--amber); font-weight: 600; font-family: monospace; font-size: 0.75rem; word-break: break-all;" id="out-cid">-</span>
+        </div>
+      </div>
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <span style="font-size: 0.8rem; color: var(--text-dim);">Output Payload Content (genomic_analysis.json / report.txt):</span>
+          <button class="btn" style="padding: 4px 10px; font-size: 0.75rem;" onclick="copyOutputPayload()">Copy Output</button>
+        </div>
+        <pre id="task-output-payload" style="background: #030712; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 14px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.82rem; max-height: 260px; overflow-y: auto; color: #a5f3fc; white-space: pre-wrap; line-height: 1.4;"></pre>
+      </div>
+    </div>
+
     <!-- Node Fleet & Real-time Log Console -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
       <div class="stat-card">
@@ -630,9 +665,38 @@
               auditLogs.scrollTop = auditLogs.scrollHeight;
             }
           }
+
+          // Dynamic Task Scientific Output Display
+          const outContainer = document.getElementById('task-output-container');
+          if (outContainer) {
+            if (data.active_job && data.active_job.output_data) {
+              outContainer.style.display = 'block';
+              const taskIdEl = document.getElementById('out-task-id');
+              if (taskIdEl) taskIdEl.innerText = data.active_job.job_id || '-';
+              const workerEl = document.getElementById('out-worker-node');
+              if (workerEl) workerEl.innerText = data.active_job.worker_node_id || '-';
+              const fuelEl = document.getElementById('out-fuel');
+              if (fuelEl) fuelEl.innerText = (data.active_job.fuel_consumed || 0).toLocaleString();
+              const cidEl = document.getElementById('out-cid');
+              if (cidEl) cidEl.innerText = data.active_job.output_cid || '-';
+              const payloadEl = document.getElementById('task-output-payload');
+              if (payloadEl) payloadEl.innerText = data.active_job.output_data;
+            } else {
+              outContainer.style.display = 'none';
+            }
+          }
         })
         .catch(e => {});
     }, 2000);
+
+    function copyOutputPayload() {
+      const payloadEl = document.getElementById('task-output-payload');
+      if (payloadEl && payloadEl.innerText) {
+        navigator.clipboard.writeText(payloadEl.innerText).then(() => {
+          alert('Copied scientific output payload to clipboard!');
+        });
+      }
+    }
   </script>
 </body>
 </html>

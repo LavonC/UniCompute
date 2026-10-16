@@ -22,10 +22,15 @@ type JobStage struct {
 
 // ActiveJobInfo models the active running or recently submitted job.
 type ActiveJobInfo struct {
-	JobID  string     `json:"job_id"`
-	Title  string     `json:"title"`
-	Status string     `json:"status"`
-	Stages []JobStage `json:"stages"`
+	JobID               string     `json:"job_id"`
+	Title               string     `json:"title"`
+	Status              string     `json:"status"`
+	Stages              []JobStage `json:"stages"`
+	OutputCID           string     `json:"output_cid,omitempty"`
+	OutputData          string     `json:"output_data,omitempty"`
+	FuelConsumed        uint64     `json:"fuel_consumed,omitempty"`
+	ExecutionDurationMs int64      `json:"execution_duration_ms,omitempty"`
+	WorkerNodeID        string     `json:"worker_node_id,omitempty"`
 }
 
 // ClusterStatusResponse models cluster telemetry sent to the coordinator UI.

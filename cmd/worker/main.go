@@ -114,9 +114,12 @@ func (a *WorkerAgent) AddTrustedKey(pubKeyHex string) {
 
 func main() {
 	nodeIDFlag := flag.String("id", "", "Unique Node ID (defaults to auto-generated)")
-	coordFlag := flag.String("coordinator", "ws://localhost:8443/ws", "Coordinator WebSocket URL")
+	coordFlag := flag.String("coordinator", "", "Coordinator WebSocket or HTTP URL (e.g. wss://app.onrender.com/ws or https://app.onrender.com)")
 	guiPort := flag.Int("gui-port", 9090, "Local Windows desktop GUI HTTP port")
 	zoneFlag := flag.String("zone", "Campus Lab", "Subnet zone: Campus Lab, Dorm Wi-Fi, Residential CGNAT")
+	coresFlag := flag.Int("cores", 4, "Allocated CPU cores")
+	ramFlag := flag.Int64("ram", 8192, "Allocated RAM in MB")
+	storageFlag := flag.Int64("storage", 120, "Storage quota in GB")
 	trustedKeysFlag := flag.String("trusted-keys", "", "Comma-separated institutional Ed25519 public keys for Tier 3 native execution")
 	flag.Parse()
 
@@ -124,6 +127,27 @@ func main() {
 	if id == "" {
 		host, _ := os.Hostname()
 		id = fmt.Sprintf("node-%s-%x", host, time.Now().UnixNano()%0xffff)
+	}
+
+	coordURL := *coordFlag
+	if coordURL == "" {
+		coordURL = os.Getenv("UNICOMPUTE_COORDINATOR")
+	}
+	if coordURL == "" {
+		coordURL = "ws://localhost:8443/ws"
+	}
+
+	// Normalize coordinator URL scheme and path
+	if strings.HasPrefix(coordURL, "https://") {
+		coordURL = "wss://" + strings.TrimPrefix(coordURL, "https://")
+	} else if strings.HasPrefix(coordURL, "http://") {
+		coordURL = "ws://" + strings.TrimPrefix(coordURL, "http://")
+	}
+	if !strings.HasPrefix(coordURL, "ws://") && !strings.HasPrefix(coordURL, "wss://") {
+		coordURL = "wss://" + coordURL
+	}
+	if !strings.HasSuffix(coordURL, "/ws") {
+		coordURL = strings.TrimSuffix(coordURL, "/") + "/ws"
 	}
 
 	var trustedKeys []string
@@ -141,9 +165,19 @@ func main() {
 	}
 
 	vaultDir := filepath.Join(os.TempDir(), fmt.Sprintf("unicompute-vault-%s", id))
-	agent, err := NewWorkerAgent(id, *coordFlag, protocol.SubnetZone(*zoneFlag), vaultDir, trustedKeys...)
+	agent, err := NewWorkerAgent(id, coordURL, protocol.SubnetZone(*zoneFlag), vaultDir, trustedKeys...)
 	if err != nil {
 		log.Fatalf("Fatal worker agent init: %v", err)
+	}
+
+	if *coresFlag > 0 {
+		agent.allocatedCores = *coresFlag
+	}
+	if *ramFlag > 0 {
+		agent.allocatedRAMMB = *ramFlag
+	}
+	if *storageFlag > 0 {
+		agent.storageQuotaGB = *storageFlag
 	}
 
 	// Start local GUI server (§10.1)

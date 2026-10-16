@@ -385,11 +385,28 @@ func (s *CoordinatorServer) handleClusterStatus(w http.ResponseWriter, r *http.R
 		}
 
 		stages = []web.JobStage{s1, s2, s3, s4}
+		var outCID string
+		var outData string
+		var fuel uint64
+		var dur int64
+		var workerNode string
+		if receipt, hasReceipt := s.receipts[pickedTask.TaskID]; hasReceipt {
+			outCID = receipt.OutputCID
+			outData = string(receipt.OutputData)
+			fuel = receipt.FuelConsumed
+			dur = receipt.ExecutionDurationMs
+			workerNode = receipt.NodeID
+		}
 		activeJob = &web.ActiveJobInfo{
-			JobID:  pickedTask.TaskID,
-			Title:  pickedTask.Name,
-			Status: string(st),
-			Stages: stages,
+			JobID:               pickedTask.TaskID,
+			Title:               pickedTask.Name,
+			Status:              string(st),
+			Stages:              stages,
+			OutputCID:           outCID,
+			OutputData:          outData,
+			FuelConsumed:        fuel,
+			ExecutionDurationMs: dur,
+			WorkerNodeID:        workerNode,
 		}
 	}
 
