@@ -1,0 +1,124 @@
+package gui
+
+import (
+	"unicompute/pkg/protocol"
+	"unicompute/pkg/web"
+)
+
+// SystemStats models the telemetry and state of the Donor Node Agent.
+type SystemStats struct {
+	NodeID             string   `json:"node_id"`
+	WorkerPubKey       string   `json:"worker_pub_key"`
+	ResearcherPubKey   string   `json:"researcher_pub_key"`
+	AllocatedCores     int      `json:"allocated_cores"`
+	TotalCores         int      `json:"total_cores"`
+	AllocatedRAMMB     int64    `json:"allocated_ram_mb"`
+	TotalRAMMB         int64    `json:"total_ram_mb"`
+	StorageQuotaGB     int64    `json:"storage_quota_gb"`
+	StorageUsedGB      float64  `json:"storage_used_gb"`
+	Paused             bool     `json:"paused"`
+	PauseReason        string   `json:"pause_reason,omitempty"`
+	OnBattery          bool     `json:"on_battery"`
+	BatteryPercent     int      `json:"battery_percent"`
+	PowerSource        string   `json:"power_source"`
+	AutoPauseBattery   bool     `json:"auto_pause_battery"`
+	PauseGaming        bool     `json:"pause_gaming"`
+	CampusHours        bool     `json:"campus_hours"`
+	ActiveSandboxTiers []int    `json:"active_sandbox_tiers"`
+	CreditScore        float64  `json:"credit_score"`
+	Zone               string   `json:"zone"`
+	StoredShardsCount  int      `json:"stored_shards_count"`
+	ActiveTask         *ActiveTaskInfo `json:"active_task,omitempty"`
+}
+
+// ActiveTaskInfo models the active task executing on the donor node.
+type ActiveTaskInfo struct {
+	TaskID         string  `json:"task_id"`
+	Name           string  `json:"name"`
+	Tier           int     `json:"tier"`
+	Progress       float64 `json:"progress"`
+	FuelRate       string  `json:"fuel_rate"`
+	FuelConsumed   uint64  `json:"fuel_consumed"`
+	MemoryCommitMB int64   `json:"memory_commit_mb"`
+	MaxMemoryMB    int64   `json:"max_memory_mb"`
+	LocalityStatus string  `json:"locality_status"`
+	Stdout         string  `json:"stdout"`
+}
+
+// IngestResult models the result of slicing a dataset with FastCDC, MLE, and RS(32, 80).
+type IngestResult struct {
+	Filename          string   `json:"filename"`
+	FileSizeBytes     int64    `json:"file_size_bytes"`
+	ChunkCount        int      `json:"chunk_count"`
+	AvgChunkSizeBytes int      `json:"avg_chunk_size_bytes"`
+	DatasetCID        string   `json:"dataset_cid"`
+	SegmentID         string   `json:"segment_id"`
+	TotalShards       int      `json:"total_shards"`
+	DataShards        int      `json:"data_shards"`
+	ParityShards      int      `json:"parity_shards"`
+	AnchorShards      int      `json:"anchor_shards"`
+	Status            string   `json:"status"`
+	SampleChunkCIDs   []string `json:"sample_chunk_cids,omitempty"`
+}
+
+// TaskSubmitRequest models the parameters for submitting a task capsule.
+type TaskSubmitRequest struct {
+	Name             string   `json:"name"`
+	MinTier          int      `json:"min_tier"`
+	Entrypoint       string   `json:"entrypoint"`
+	RequiredDatasets []string `json:"required_datasets,omitempty"`
+	DatasetCID       string   `json:"dataset_cid,omitempty"`
+	FuelLimit        uint64   `json:"fuel_limit"`
+	MaxMemoryMB      int64    `json:"max_memory_mb"`
+	CodeBase64       string   `json:"code_base64,omitempty"`
+	CodeFilename     string   `json:"code_filename,omitempty"`
+}
+
+// TaskSubmitResponse models the response when a task capsule is signed and submitted.
+type TaskSubmitResponse struct {
+	TaskID           string `json:"task_id"`
+	CapsuleID        string `json:"capsule_id"`
+	Signature        string `json:"signature"`
+	ResearcherPubKey string `json:"researcher_pub_key"`
+	Status           string `json:"status"`
+	Message          string `json:"message"`
+}
+
+// DAGPipelineStatus models the state of the 4-stage DAG visualizer in Researcher Studio.
+type DAGPipelineStatus struct {
+	ActiveJobID         string         `json:"active_job_id"`
+	ActiveJobTitle      string         `json:"active_job_title"`
+	CurrentStageIndex   int            `json:"current_stage_index"` // 1, 2, 3, 4
+	Stages              []web.JobStage `json:"stages"`
+	ExecutionDurationMs int64          `json:"execution_duration_ms"`
+	Logs                []string       `json:"logs"`
+	HasOutput           bool           `json:"has_output"`
+}
+
+// VaultMatrixStatus models the 80-shard Cauchy RS(32, 80) matrix visualizer in Storage Vault Explorer.
+type VaultMatrixStatus struct {
+	SegmentID           string                   `json:"segment_id"`
+	DatasetCID          string                   `json:"dataset_cid"`
+	DataShards          int                      `json:"data_shards"`   // 32
+	ParityShards        int                      `json:"parity_shards"` // 48
+	TotalShards         int                      `json:"total_shards"`  // 80
+	OnlineShards        int                      `json:"online_shards"`
+	ReconstructionFloor int                      `json:"reconstruction_floor"` // 32
+	RepairThreshold     int                      `json:"repair_threshold"`     // 48
+	SafetyMarginPercent float64                  `json:"safety_margin_percent"`
+	UnderRepair         bool                     `json:"under_repair"`
+	Shards              []protocol.ShardMetadata `json:"shards"`
+	AuditLogs           []string                 `json:"audit_logs"`
+}
+
+// OutputPayload models the verified scientific output payload for display.
+type OutputPayload struct {
+	TaskID              string `json:"task_id"`
+	OutputCID           string `json:"output_cid"`
+	OutputText          string `json:"output_text"`
+	FuelConsumed        uint64 `json:"fuel_consumed"`
+	ExecutionDurationMs int64  `json:"execution_duration_ms"`
+	WorkerNodeID        string `json:"worker_node_id"`
+	Signature           string `json:"signature"`
+	ExitCode            int    `json:"exit_code"`
+}

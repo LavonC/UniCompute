@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UniCompute Desktop Studio (v2.4.1)</title>
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --card-bg: rgba(15, 23, 42, 0.85);
+      --card-border: rgba(56, 189, 248, 0.2);
+      --card-hover: rgba(56, 189, 248, 0.35);
+      --cyan: #38bdf8;
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --purple: #c084fc;
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+      --gold: #facc15;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif; }
+    body { background: var(--bg-dark); color: var(--text); padding: 0; font-size: 13px; min-height: 100vh; overflow-x: hidden; user-select: none; }
+    
+    /* Top App Bar & Window Title */
+    .app-bar {
+      background: rgba(10, 15, 26, 0.95);
+      border-bottom: 1px solid var(--card-border);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+    }
+    .app-brand { display: flex; align-items: center; gap: 12px; }
+    .app-logo {
+      width: 32px; height: 32px; background: linear-gradient(135deg, var(--cyan), #2563eb);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 16px; color: white; box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+    }
+    .app-title { font-size: 1.15rem; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+    .app-subtitle { font-size: 0.75rem; color: var(--cyan); margin-left: 6px; font-weight: 500; }
+    
+    /* Navigation Mode Switcher Tabs */
+    .nav-tabs { display: flex; gap: 6px; background: rgba(0, 0, 0, 0.4); padding: 4px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); }
+    .tab-btn {
+      background: transparent; color: var(--text-dim); border: none; padding: 6px 14px;
+      border-radius: 7px; cursor: pointer; font-size: 0.85rem; font-weight: 600;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 6px;
+    }
+    .tab-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+    .tab-btn.active { background: #0284c7; color: white; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4); }
+    
+    .header-actions { display: flex; gap: 10px; align-items: center; }
+    .badge { padding: 4px 10px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+    .badge-green { background: rgba(16, 185, 129, 0.15); color: var(--emerald); border: 1px solid rgba(16, 185, 129, 0.4); }
+    .badge-amber { background: rgba(245, 158, 11, 0.15); color: var(--amber); border: 1px solid rgba(245, 158, 11, 0.4); }
+    .badge-blue { background: rgba(56, 189, 248, 0.15); color: var(--cyan); border: 1px solid rgba(56, 189, 248, 0.4); }
+    .badge-gold { background: rgba(250, 204, 21, 0.15); color: var(--gold); border: 1px solid rgba(250, 204, 21, 0.4); }
+    
+    .btn {
+      background: #1e293b; color: var(--text); border: 1px solid var(--card-border);
+      padding: 6px 14px; border-radius: 7px; cursor: pointer; font-weight: 600;
+      font-size: 0.82rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn:hover { background: #334155; border-color: var(--cyan); }
+    .btn-primary { background: #0284c7; border-color: #38bdf8; color: white; }
+    .btn-primary:hover { background: #0369a1; }
+    .btn-danger { background: #be123c; border-color: #f43f5e; color: white; }
+    .btn-danger:hover { background: #9f1239; }
+    
+    /* Layout Container */
+    .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; animation: fadeIn 0.25s ease-in-out; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Grid & Card Styles */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .card {
+      background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px;
+      padding: 20px; backdrop-filter: blur(12px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 1rem; color: var(--cyan); margin-bottom: 16px; font-weight: 700;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    
+    /* Sliders */
+    .slider-group { margin-bottom: 18px; }
+    .slider-label { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.82rem; color: var(--text-dim); }
+    .slider-val { color: var(--text); font-weight: 700; font-family: monospace; }
+    input[type=range] {
+      width: 100%; height: 6px; background: #1e293b; border-radius: 4px;
+      accent-color: var(--cyan); cursor: pointer; outline: none;
+    }
+    
+    /* Toggles */
+    .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .toggle { position: relative; display: inline-block; width: 44px; height: 22px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider-toggle { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .3s; border-radius: 22px; }
+    .slider-toggle:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+    input:checked + .slider-toggle { background-color: var(--emerald); }
+    input:checked + .slider-toggle:before { transform: translateX(22px); }
+    
+    /* Pills & Badges */
+    .tier-pills { display: flex; gap: 10px; margin-bottom: 16px; }
+    .tier-pill {
+      flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--card-border);
+      text-align: center; font-size: 0.8rem; background: rgba(0,0,0,0.25);
+    }
+    .tier-active { border-color: var(--emerald); background: rgba(16, 185, 129, 0.1); color: var(--emerald); }
+    
+    /* Stats & Progress */
+    .stat-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.85rem; }
+    .stat-label { color: var(--text-dim); }
+    .stat-value { font-weight: 700; }
+    .progress-bar-container { background: #1e293b; height: 10px; border-radius: 5px; overflow: hidden; margin: 10px 0; }
+    .progress-bar { background: linear-gradient(90deg, var(--cyan), var(--emerald)); height: 100%; width: 0%; transition: width 0.3s; }
+    .log-box {
+      background: #030508; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+      padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.78rem;
+      height: 130px; overflow-y: auto; color: #a5f3fc; line-height: 1.45;
+    }
+
+    /* Researcher Dropzone */
+    .dropzone {
+      border: 2px dashed rgba(56, 189, 248, 0.4); border-radius: 12px; padding: 32px 20px;
+      text-align: center; background: rgba(15, 23, 42, 0.6); cursor: pointer;
+      transition: all 0.2s; margin-bottom: 18px;
+    }
+    .dropzone:hover, .dropzone.dragover { border-color: var(--cyan); background: rgba(56, 189, 248, 0.08); transform: scale(1.005); }
+    .dropzone-icon { font-size: 2.5rem; margin-bottom: 10px; color: var(--cyan); }
+    
+    /* 4-Stage DAG Visualizer */
+    .dag-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+    .dag-stage {
+      background: rgba(15, 23, 42, 0.9); border: 1px solid var(--card-border);
+      border-radius: 10px; padding: 14px; position: relative; transition: all 0.25s;
+    }
+    .dag-stage.running { border-color: var(--cyan); box-shadow: 0 0 16px rgba(56, 189, 248, 0.25); }
+    .dag-stage.completed { border-color: var(--emerald); background: rgba(16, 185, 129, 0.05); }
+    .dag-stage-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.72rem; color: var(--text-dim); }
+    .dag-stage-name { font-weight: 700; font-size: 0.88rem; color: var(--text); margin-bottom: 6px; }
+    .dag-stage-desc { font-size: 0.75rem; color: var(--text-dim); line-height: 1.35; }
+
+    /* 80-Shard Cauchy Matrix */
+    .cauchy-grid {
+      display: grid; grid-template-columns: repeat(16, 1fr); gap: 6px;
+      margin: 16px 0; max-height: 280px; overflow-y: auto; padding: 4px;
+    }
+    .shard-box {
+      aspect-ratio: 1; border-radius: 4px; font-size: 0.62rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+      transition: all 0.15s; position: relative; border: 1px solid transparent;
+    }
+    .shard-box:hover { transform: scale(1.15); z-index: 10; box-shadow: 0 0 8px rgba(255,255,255,0.4); }
+    .shard-data { background: #0284c7; color: white; }
+    .shard-parity { background: #059669; color: white; }
+    .shard-anchor { border: 2px solid var(--gold) !important; box-shadow: 0 0 4px rgba(250, 204, 21, 0.5); }
+    .shard-offline { background: #e11d48 !important; opacity: 0.6; }
+
+    /* Tooltip */
+    #tooltip {
+      position: fixed; display: none; background: #0f172a; border: 1px solid var(--cyan);
+      border-radius: 6px; padding: 8px 12px; font-size: 0.75rem; color: white;
+      pointer-events: none; z-index: 1000; box-shadow: 0 6px 16px rgba(0,0,0,0.6);
+    }
+  </style>
+</head>
+<body>
+  <div id="tooltip"></div>
+
+  <!-- Top Native App Bar -->
+  <header class="app-bar">
+    <div class="app-brand">
+      <div class="app-logo">UC</div>
+      <div>
+        <span class="app-title">UniCompute Desktop Studio</span>
+        <span class="app-subtitle">v2.4.1</span>
+      </div>
+    </div>
+
+    <!-- Mode Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="tab-btn active" onclick="switchMode('donor', this)">
+        <span>💻</span> Donor Node Agent
+      </button>
+      <button class="tab-btn" onclick="switchMode('researcher', this)">
+        <span>🔬</span> Researcher Studio
+      </button>
+      <button class="tab-btn" onclick="switchMode('vault', this)">
+        <span>🗄️</span> Storage Vault Explorer
+      </button>
+    </nav>
+
+    <!-- Header Actions & Telemetry -->
+    <div class="header-actions">
+      <span id="node-id-badge" class="badge badge-blue">Node: <span id="node-id">...</span></span>
+      <span id="power-badge" class="badge badge-green">🔌 AC Mains</span>
+      <span id="status-badge" class="badge badge-green">ACTIVE</span>
+      <button id="pause-btn" class="btn" onclick="togglePause()">Pause Compute</button>
+      <button id="tray-btn" class="btn" onclick="minimizeToTray()" title="Minimize to Windows System Tray"><span>📥</span> Tray</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- MODE 1: DONOR NODE AGENT (Figure 8) -->
+    <section id="mode-donor" class="tab-content active">
+      <div class="grid-2">
+        <!-- Resource Envelope Sliders -->
+        <div class="card">
+          <div class="card-title">
+            <span>Deterministic Resource Envelope Sliders</span>
+            <span class="badge badge-green">Win32 JobObject Enforced</span>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-label">
+              <span>CPU Core Allocation</span>
+              <span class="slider-val" id="cpu-val">4 / 8 Cores (50%)</span>
+            </div>
+            <input type="range" id="cpu-slider" min="1" max="16" value="4" oninput="onSliderChange()">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-label">
+              <span>RAM Working-Set Ceiling</span>
+              <span class="slider-val" id="ram-val">8.0 GB / 16.0 GB Cap</span>
+            </div>
+            <input type="range" id="ram-slider" min="2" max="32" value="8" oninput="onSliderChange()">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-label">
+              <span>Local Storage Vault Quota (Tier L)</span>
+              <span class="slider-val" id="storage-val">120 GB Quota</span>
+            </div>
+            <input type="range" id="storage-slider" min="10" max="500" value="120" oninput="onSliderChange()">
+          </div>
+
+          <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.06); margin: 18px 0;">
+
+          <div class="card-title" style="font-size: 0.9rem; margin-bottom: 12px;">Automated Power & Idle Rules</div>
+          <div class="toggle-row">
+            <span>Suspend compute instantly on DC Battery Power</span>
+            <label class="toggle"><input type="checkbox" id="rule-battery" checked onchange="saveRules()"><span class="slider-toggle"></span></label>
+          </div>
+          <div class="toggle-row">
+            <span>Pause execution on active Mouse/Keyboard gaming</span>
+            <label class="toggle"><input type="checkbox" id="rule-gaming" checked onchange="saveRules()"><span class="slider-toggle"></span></label>
+          </div>
+          <div class="toggle-row">
+            <span>Restrict background jobs to Campus Hours (08:00 - 22:00)</span>
+            <label class="toggle"><input type="checkbox" id="rule-hours" onchange="saveRules()"><span class="slider-toggle"></span></label>
+          </div>
+        </div>
+
+        <!-- Active Task Execution Monitor -->
+        <div class="card">
+          <div class="card-title">
+            <span>Active Task Execution Monitor</span>
+            <span class="badge badge-blue" id="donor-locality-badge">Tier L Hit: Zero Network Fetch</span>
+          </div>
+
+          <div class="tier-pills">
+            <div class="tier-pill tier-active">
+              <strong>Tier 1: Wasm</strong><br><small>Wazero WASI (Active)</small>
+            </div>
+            <div class="tier-pill tier-active">
+              <strong>Tier 2: JobObject</strong><br><small>Hardened Container</small>
+            </div>
+            <div class="tier-pill" style="color: var(--text-dim);">
+              <strong>Tier 3: GPU</strong><br><small>Signed Core Pool</small>
+            </div>
+          </div>
+
+          <div class="stat-row">
+            <span class="stat-label">Active Task</span>
+            <span class="stat-value" id="donor-task-name" style="color: var(--cyan);">Idle (Awaiting Task)</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Memory Commit</span>
+            <span class="stat-value" id="donor-task-mem">0 MiB / 8192 MiB Cap</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Instruction Fuel / Rate</span>
+            <span class="stat-value" id="donor-task-rate" style="color: var(--emerald);">0.0 GFLOPS</span>
+          </div>
+
+          <div class="progress-bar-container">
+            <div class="progress-bar" id="donor-progress-bar" style="width: 0%;"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 12px;">
+            <span>Execution Progress</span>
+            <span id="donor-progress-text">0% Completed</span>
+          </div>
+
+          <div class="card-title" style="font-size: 0.85rem; margin-bottom: 6px;">Live SCTP Stdout Stream</div>
+          <div class="log-box" id="donor-stdout-box">
+[System] UniCompute Donor Agent ready. Listening for peer task dispatches...
+          </div>
+        </div>
+      </div>
+
+      <!-- Storage Vault Inventory & Telemetry Summary -->
+      <div class="card">
+        <div class="card-title">
+          <span>Local Donor Node Telemetry</span>
+          <span style="font-size: 0.82rem; color: var(--cyan);" id="donor-shards-summary">Stored Shards: 0</span>
+        </div>
+        <div class="grid-4">
+          <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px;">
+            <div style="color: var(--text-dim); font-size: 0.75rem;">Credit Score (BitTorrent Decay)</div>
+            <div style="font-size: 1.3rem; font-weight: 700; color: var(--emerald);" id="donor-credit-score">0.964</div>
+          </div>
+          <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px;">
+            <div style="color: var(--text-dim); font-size: 0.75rem;">Subnet Zone</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: var(--purple);" id="donor-zone">Campus Lab (10GbE)</div>
+          </div>
+          <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px;">
+            <div style="color: var(--text-dim); font-size: 0.75rem;">Power Source</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: var(--cyan);" id="donor-power-source">AC Mains</div>
+          </div>
+          <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px;">
+            <div style="color: var(--text-dim); font-size: 0.75rem;">Storage Vault Allocation</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: var(--amber);" id="donor-storage-alloc">0.0 / 120 GB</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODE 2: RESEARCHER STUDIO (Figure 9) -->
+    <section id="mode-researcher" class="tab-content">
+      <!-- Drag and drop dataset ingestion hub -->
+      <div class="card">
+        <div class="card-title">
+          <span>Dataset Ingestion Hub</span>
+          <span class="badge badge-blue">FastCDC + MLE + Cauchy RS(32, 80)</span>
+        </div>
+
+        <div class="dropzone" id="dataset-dropzone" onclick="document.getElementById('file-input').click()">
+          <div class="dropzone-icon">📥</div>
+          <div style="font-size: 1.05rem; font-weight: 700; margin-bottom: 4px;">Drag & Drop Dataset File Here</div>
+          <div style="color: var(--text-dim); font-size: 0.8rem;">Supports FASTA (.fa), CSV, BIN, or raw scientific datasets. Automatically slices with FastCDC and encodes to 80 Cauchy shards.</div>
+          <input type="file" id="file-input" style="display: none;" onchange="handleFileSelect(event)">
+        </div>
+
+        <div id="ingest-result-card" style="display: none; background: rgba(0,0,0,0.4); border: 1px solid var(--emerald); border-radius: 8px; padding: 14px; margin-top: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-weight: 700; color: var(--emerald);">✓ Dataset Successfully Ingested & Sharded</span>
+            <span class="badge badge-green" id="ingest-status-badge">COMMITTED TO VAULT</span>
+          </div>
+          <div class="grid-4" style="font-size: 0.82rem;">
+            <div><span style="color: var(--text-dim);">File:</span> <strong id="res-filename">-</strong></div>
+            <div><span style="color: var(--text-dim);">Size:</span> <strong id="res-filesize">-</strong></div>
+            <div><span style="color: var(--text-dim);">FastCDC Chunks:</span> <strong id="res-chunks">-</strong></div>
+            <div><span style="color: var(--text-dim);">RS(32, 80) Shards:</span> <strong id="res-shards">32 Data / 48 Parity</strong></div>
+          </div>
+          <div style="margin-top: 10px; font-size: 0.82rem;">
+            <span style="color: var(--text-dim);">Merkle Root Content ID (CID):</span>
+            <code style="color: var(--cyan); word-break: break-all; margin-left: 6px;" id="res-cid">-</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Task Submission Wizard -->
+      <div class="card">
+        <div class="card-title">
+          <span>Task Capsule Submission Wizard</span>
+          <span class="badge badge-gold">Ed25519 Cryptographically Signed</span>
+        </div>
+
+        <form id="task-submit-form" onsubmit="handleTaskSubmit(event)">
+          <div class="grid-2">
+            <div>
+              <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Task Name</label>
+              <input type="text" id="task-name-input" value="Genomic Sequence Alignment" style="width: 100%; padding: 8px 12px; background: #030508; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);" required>
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Execution Tier</label>
+              <select id="task-tier-select" style="width: 100%; padding: 8px 12px; background: #030508; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);">
+                <option value="1">Tier 1: WebAssembly WASI (Wazero Canonical-NaN)</option>
+                <option value="2">Tier 2: Hardened Process Container</option>
+                <option value="3">Tier 3: Hardware-Accelerated Native GPU</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-top: 12px;">
+            <div>
+              <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Required Dataset CID (Optional)</label>
+              <input type="text" id="task-dataset-cid" placeholder="Auto-filled from Ingestion or enter Merkle CID" style="width: 100%; padding: 8px 12px; background: #030508; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);">
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Instruction Fuel Limit</label>
+              <input type="number" id="task-fuel-input" value="500000000" style="width: 100%; padding: 8px 12px; background: #030508; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);">
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-top: 12px;">
+            <div>
+              <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Task Code Payload / Wasm Capsule</label>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <button type="button" class="btn" style="padding: 6px 10px;" onclick="document.getElementById('code-input').click()">Browse (.wasm)</button>
+                <span id="code-filename-label" style="font-size: 0.78rem; color: var(--cyan);">Default: Built-in Genomic Analyzer (task.wasm)</span>
+              </div>
+              <input type="file" id="code-input" style="display: none;" onchange="handleCodeSelect(event)">
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Entrypoint</label>
+              <input type="text" id="task-entrypoint" value="task.wasm" style="width: 100%; padding: 8px 12px; background: #030508; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);">
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px;">
+            <div style="font-size: 0.78rem; color: var(--text-dim);">
+              Signing with Researcher Key: <code style="color: var(--amber);" id="researcher-pub-preview">researcher.key (Ed25519)</code>
+            </div>
+            <button type="submit" class="btn btn-primary">
+              <span>🚀</span> Sign & Dispatch Task Capsule
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Interactive 4-Stage DAG Pipeline Visualizer -->
+      <div class="card">
+        <div class="card-title">
+          <span>Interactive 4-Stage DAG Pipeline Visualizer</span>
+          <span class="badge badge-blue" id="dag-job-title">Job: -</span>
+        </div>
+
+        <div class="dag-grid" id="dag-container">
+          <!-- Stage 1 -->
+          <div class="dag-stage" id="stage-1">
+            <div class="dag-stage-header">
+              <span>STAGE 1</span>
+              <span class="badge badge-blue" id="stage-1-status">IDLE</span>
+            </div>
+            <div class="dag-stage-name">Ingestion & Merkle Index</div>
+            <div class="dag-stage-desc" id="stage-1-desc">FastCDC chunking & Merkle tree verification</div>
+          </div>
+
+          <!-- Stage 2 -->
+          <div class="dag-stage" id="stage-2">
+            <div class="dag-stage-header">
+              <span>STAGE 2</span>
+              <span class="badge badge-blue" id="stage-2-status">IDLE</span>
+            </div>
+            <div class="dag-stage-name">PACMan Locality Dispatch</div>
+            <div class="dag-stage-desc" id="stage-2-desc">Convex scoring for Tier R/L cache residency</div>
+          </div>
+
+          <!-- Stage 3 -->
+          <div class="dag-stage" id="stage-3">
+            <div class="dag-stage-header">
+              <span>STAGE 3</span>
+              <span class="badge badge-blue" id="stage-3-status">IDLE</span>
+            </div>
+            <div class="dag-stage-name">Sandbox Grid Solver</div>
+            <div class="dag-stage-desc" id="stage-3-desc">Wazero WASI execution with fuel metering</div>
+          </div>
+
+          <!-- Stage 4 -->
+          <div class="dag-stage" id="stage-4">
+            <div class="dag-stage-header">
+              <span>STAGE 4</span>
+              <span class="badge badge-blue" id="stage-4-status">IDLE</span>
+            </div>
+            <div class="dag-stage-name">Attestation & Auditing</div>
+            <div class="dag-stage-desc" id="stage-4-desc">Ed25519 receipt verification & spot-check</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verified Scientific Results Card -->
+      <div class="card" id="output-card" style="display: none; border-color: rgba(16, 185, 129, 0.4);">
+        <div class="card-title">
+          <span style="color: var(--emerald);">✓ Verified Scientific Output Payload</span>
+          <button class="btn" onclick="copyOutputPayload()">Copy Payload</button>
+        </div>
+        <div class="grid-4" style="font-size: 0.82rem; margin-bottom: 12px;">
+          <div><span style="color: var(--text-dim);">Task ID:</span> <strong id="out-task-id" style="color: var(--cyan);">-</strong></div>
+          <div><span style="color: var(--text-dim);">Executed By:</span> <strong id="out-worker">-</strong></div>
+          <div><span style="color: var(--text-dim);">Fuel Consumed:</span> <strong id="out-fuel" style="color: var(--purple);">-</strong></div>
+          <div><span style="color: var(--text-dim);">Output CID:</span> <code id="out-cid" style="color: var(--amber);">-</code></div>
+        </div>
+        <pre id="output-payload-box" style="background: #030508; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 14px; font-family: monospace; font-size: 0.82rem; max-height: 220px; overflow-y: auto; color: #a5f3fc; line-height: 1.4;"></pre>
+      </div>
+    </section>
+
+    <!-- MODE 3: STORAGE VAULT EXPLORER (Figure 10) -->
+    <section id="mode-vault" class="tab-content">
+      <div class="card">
+        <div class="card-title">
+          <span>Cauchy Reed-Solomon RS(32, 80) Shard Dispersal Matrix</span>
+          <span style="font-size: 0.82rem; color: var(--text-dim);">Inspecting Segment: <code style="color: var(--cyan);" id="vault-segment-id">seg_demo_01</code></span>
+        </div>
+
+        <!-- Reconstruction Safety Margin Gauge -->
+        <div style="background: rgba(0,0,0,0.3); padding: 16px; border-radius: 8px; margin-bottom: 18px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem;">
+            <span>Reconstruction Safety Margin Gauge:</span>
+            <span style="font-weight: 700; color: var(--emerald);" id="safety-label">78 / 80 Shards Online (Safety: 95.8%)</span>
+          </div>
+          <div style="background: #1e293b; height: 16px; border-radius: 8px; overflow: hidden; position: relative;">
+            <div id="safety-bar" style="background: linear-gradient(90deg, #e11d48, #f59e0b 40%, #10b981 60%); width: 95%; height: 100%;"></div>
+            <div style="position: absolute; left: 40%; top: 0; bottom: 0; width: 2px; background: white;" title="Floor: 32"></div>
+            <div style="position: absolute; left: 60%; top: 0; bottom: 0; width: 2px; background: #38bdf8;" title="Lazy Repair: 48"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-dim); margin-top: 6px;">
+            <span>0 Shards</span>
+            <span style="color: var(--rose);">32 (Reconstruction Floor)</span>
+            <span style="color: var(--cyan);">48 (Lazy Batched Repair Threshold)</span>
+            <span style="color: var(--emerald);">80 Total Shards</span>
+          </div>
+        </div>
+
+        <!-- 80-Shard Cauchy Matrix Visualizer -->
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; color: var(--text-dim); margin-bottom: 8px;">
+          <span>32 Data Shards (D_00..D_31) in Blue | 48 Parity Shards (P_32..P_79) in Green | Gold Border = Campus Lab Anchor:</span>
+          <span id="shards-summary-badge" class="badge badge-green">ALL SEGMENTS HEALTHY</span>
+        </div>
+
+        <div class="cauchy-grid" id="cauchy-matrix">
+          <!-- Rendered dynamically via JS -->
+        </div>
+
+        <div style="display: flex; gap: 20px; font-size: 0.78rem; margin-top: 10px;">
+          <span style="display: flex; align-items: center; gap: 6px;"><div style="width: 12px; height: 12px; background: #0284c7; border-radius: 2px;"></div> Data Shard (D_00..D_31)</span>
+          <span style="display: flex; align-items: center; gap: 6px;"><div style="width: 12px; height: 12px; background: #059669; border-radius: 2px;"></div> Parity Shard (P_32..P_79)</span>
+          <span style="display: flex; align-items: center; gap: 6px;"><div style="width: 12px; height: 12px; border: 2px solid var(--gold); border-radius: 2px;"></div> Campus Lab Anchor (Pinned)</span>
+          <span style="display: flex; align-items: center; gap: 6px;"><div style="width: 12px; height: 12px; background: #e11d48; border-radius: 2px;"></div> Offline / Churn</span>
+        </div>
+      </div>
+
+      <!-- Live Storage Audit Stream -->
+      <div class="card">
+        <div class="card-title">
+          <span>Live Algebraic Stripe Audit Stream</span>
+          <span class="badge badge-green">PoR & Berlekamp-Welch</span>
+        </div>
+        <div class="log-box" id="audit-log-box" style="height: 180px;">
+[Storage Audit] Dual-mode cryptographic auditing online.
+[PoR] Initial challenge sequence established.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Tab switching
+    function switchMode(mode, btn) {
+      document.querySelectorAll('.nav-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      const target = document.getElementById('mode-' + mode);
+      if (target) target.classList.add('active');
+    }
+
+    // Drag and drop listeners
+    const dropzone = document.getElementById('dataset-dropzone');
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        uploadFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    function handleFileSelect(e) {
+      if (e.target.files && e.target.files.length > 0) {
+        uploadFile(e.target.files[0]);
+      }
+    }
+
+    async function uploadFile(file) {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const res = await fetch('/api/ingest?filename=' + encodeURIComponent(file.name), {
+            method: 'POST',
+            body: reader.result
+          });
+          const data = await res.json();
+          if (data && data.dataset_cid) {
+            document.getElementById('ingest-result-card').style.display = 'block';
+            document.getElementById('res-filename').textContent = data.filename;
+            document.getElementById('res-filesize').textContent = (data.file_size_bytes / 1024).toFixed(1) + ' KB';
+            document.getElementById('res-chunks').textContent = data.chunk_count + ' chunks';
+            document.getElementById('res-cid').textContent = data.dataset_cid;
+            document.getElementById('task-dataset-cid').value = data.dataset_cid;
+            pollVault();
+          }
+        } catch (err) {
+          console.error("Ingestion failed: ", err);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    let selectedCodeBase64 = "";
+    let selectedCodeFilename = "";
+
+    function handleCodeSelect(e) {
+      if (e.target.files && e.target.files.length > 0) {
+        const file = e.target.files[0];
+        selectedCodeFilename = file.name;
+        document.getElementById('code-filename-label').textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+        document.getElementById('task-entrypoint').value = file.name;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const resStr = reader.result;
+          selectedCodeBase64 = resStr.split(',')[1] || resStr;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    async function handleTaskSubmit(e) {
+      e.preventDefault();
+      const payload = {
+        name: document.getElementById('task-name-input').value,
+        min_tier: parseInt(document.getElementById('task-tier-select').value),
+        dataset_cid: document.getElementById('task-dataset-cid').value,
+        fuel_limit: parseInt(document.getElementById('task-fuel-input').value),
+        entrypoint: document.getElementById('task-entrypoint').value || "task.wasm",
+        code_base64: selectedCodeBase64,
+        code_filename: selectedCodeFilename
+      };
+
+      try {
+        const res = await fetch('/api/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        console.log("Task dispatched:", data);
+        pollStats();
+        pollDAG();
+      } catch (err) {
+        console.error("Submission failed:", err);
+      }
+    }
+
+    async function togglePause() {
+      try {
+        if (window.TogglePause) {
+          await window.TogglePause();
+        } else {
+          await fetch('/api/pause', { method: 'POST' });
+        }
+        pollStats();
+      } catch (e) {}
+    }
+
+    async function minimizeToTray() {
+      try {
+        if (window.MinimizeToTray) {
+          await window.MinimizeToTray();
+        } else {
+          await fetch('/api/tray/minimize', { method: 'POST' });
+        }
+      } catch (e) {
+        console.error("Minimize to tray failed:", e);
+      }
+    }
+
+    let hostHardwareInitialized = false;
+    let totalHostCores = 8;
+    let totalHostRAM = 16384;
+    let sliderTimeout = null;
+
+    function updateSliderLabels() {
+      const cores = document.getElementById('cpu-slider').value;
+      const ram = document.getElementById('ram-slider').value;
+      const storage = document.getElementById('storage-slider').value;
+      const totalCores = totalHostCores || 8;
+      const totalRAMGB = Math.round((totalHostRAM || 16384) / 1024);
+
+      document.getElementById('cpu-val').textContent = cores + ' / ' + totalCores + ' Cores (' + Math.round(cores / totalCores * 100) + '%)';
+      document.getElementById('ram-val').textContent = ram + '.0 GB / ' + totalRAMGB + '.0 GB Cap';
+      document.getElementById('storage-val').textContent = storage + ' GB Quota';
+    }
+
+    function onSliderChange() {
+      updateSliderLabels();
+
+      clearTimeout(sliderTimeout);
+      sliderTimeout = setTimeout(async () => {
+        const cores = parseInt(document.getElementById('cpu-slider').value);
+        const ram = parseInt(document.getElementById('ram-slider').value) * 1024;
+        const storage = parseInt(document.getElementById('storage-slider').value);
+        if (window.UpdateResourceSliders) {
+          await window.UpdateResourceSliders(cores, ram, storage);
+        } else {
+          await fetch('/api/sliders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cores: cores, ram_mb: ram, storage_gb: storage })
+          });
+        }
+      }, 300);
+    }
+
+    async function saveRules() {
+      const battery = document.getElementById('rule-battery').checked;
+      const gaming = document.getElementById('rule-gaming').checked;
+      const hours = document.getElementById('rule-hours').checked;
+      if (window.UpdateRules) {
+        await window.UpdateRules(battery, gaming, hours);
+      } else {
+        await fetch('/api/rules', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ auto_pause_battery: battery, pause_gaming: gaming, campus_hours: hours })
+        });
+      }
+    }
+
+    function copyOutputPayload() {
+      const text = document.getElementById('output-payload-box').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('#output-card button');
+        if (btn) {
+          const oldText = btn.textContent;
+          btn.textContent = "✓ Copied!";
+          setTimeout(() => { btn.textContent = oldText; }, 2000);
+        }
+      }).catch(() => {});
+    }
+
+    // Polling Telemetry
+    async function pollStats() {
+      try {
+        let s;
+        if (window.GetSystemStats) {
+          s = await window.GetSystemStats();
+        } else {
+          const res = await fetch('/api/stats');
+          s = await res.json();
+        }
+        if (!s) return;
+
+        // Initialize hardware bounds and sliders on first telemetry load
+        if (!hostHardwareInitialized && s.total_cores > 0) {
+          hostHardwareInitialized = true;
+          totalHostCores = s.total_cores;
+          totalHostRAM = s.total_ram_mb || 16384;
+
+          const cpuSlider = document.getElementById('cpu-slider');
+          cpuSlider.max = totalHostCores;
+          cpuSlider.value = s.allocated_cores;
+
+          const ramSlider = document.getElementById('ram-slider');
+          ramSlider.max = Math.max(16, Math.round(totalHostRAM / 1024));
+          ramSlider.value = Math.round(s.allocated_ram_mb / 1024);
+
+          const storageSlider = document.getElementById('storage-slider');
+          storageSlider.value = s.storage_quota_gb;
+
+          updateSliderLabels();
+
+          document.getElementById('rule-battery').checked = s.auto_pause_battery;
+          document.getElementById('rule-gaming').checked = s.pause_gaming;
+          document.getElementById('rule-hours').checked = s.campus_hours;
+        }
+
+        if (s.researcher_pub_key) {
+          const previewEl = document.getElementById('researcher-pub-preview');
+          if (previewEl) {
+            previewEl.textContent = s.researcher_pub_key.substring(0, 16) + '... (Ed25519 Verified)';
+          }
+        }
+
+        document.getElementById('node-id').textContent = s.node_id || 'node-local';
+        document.getElementById('donor-credit-score').textContent = (s.credit_score || 0.964).toFixed(3);
+        document.getElementById('donor-zone').textContent = s.zone || 'Campus Lab';
+        document.getElementById('donor-power-source').textContent = s.power_source || 'AC Mains';
+        document.getElementById('donor-storage-alloc').textContent = (s.storage_used_gb || 0).toFixed(1) + ' / ' + (s.storage_quota_gb || 120) + ' GB';
+        document.getElementById('donor-shards-summary').textContent = 'Stored Shards: ' + (s.stored_shards_count || 0);
+
+        // Power badge
+        const pb = document.getElementById('power-badge');
+        if (s.on_battery) {
+          pb.className = 'badge badge-amber';
+          pb.textContent = '🔋 Battery (' + s.battery_percent + '%)';
+        } else {
+          pb.className = 'badge badge-green';
+          pb.textContent = '🔌 ' + (s.power_source || 'AC Mains');
+        }
+
+        // Status badge
+        const sb = document.getElementById('status-badge');
+        const pbtn = document.getElementById('pause-btn');
+        if (s.paused) {
+          sb.className = 'badge badge-amber';
+          sb.textContent = 'PAUSED';
+          pbtn.textContent = 'Resume Compute';
+        } else {
+          sb.className = 'badge badge-green';
+          sb.textContent = 'ACTIVE';
+          pbtn.textContent = 'Pause Compute';
+        }
+
+        // Active task execution monitor
+        if (s.active_task) {
+          document.getElementById('donor-task-name').textContent = s.active_task.name || s.active_task.task_id;
+          document.getElementById('donor-task-mem').textContent = s.active_task.memory_commit_mb + ' MiB / ' + s.active_task.max_memory_mb + ' MiB Cap';
+          document.getElementById('donor-task-rate').textContent = s.active_task.fuel_rate || '142.8 GFLOPS';
+          document.getElementById('donor-progress-bar').style.width = (s.active_task.progress || 0) + '%';
+          document.getElementById('donor-progress-text').textContent = (s.active_task.progress || 0).toFixed(1) + '% Completed';
+          document.getElementById('donor-locality-badge').textContent = s.active_task.locality_status || 'Tier L Hit';
+          if (s.active_task.stdout) {
+            document.getElementById('donor-stdout-box').textContent = s.active_task.stdout;
+          }
+        } else {
+          document.getElementById('donor-task-name').textContent = 'Idle (Awaiting Task)';
+          document.getElementById('donor-task-mem').textContent = '0 MiB / ' + (s.allocated_ram_mb || 8192) + ' MiB Cap';
+          document.getElementById('donor-task-rate').textContent = '0.0 GFLOPS (Idle)';
+          document.getElementById('donor-progress-bar').style.width = '0%';
+          document.getElementById('donor-progress-text').textContent = '0% Completed';
+          document.getElementById('donor-locality-badge').textContent = 'Ready';
+        }
+      } catch (e) {}
+    }
+
+    async function pollDAG() {
+      try {
+        let dag;
+        if (window.GetDAGStatus) {
+          dag = await window.GetDAGStatus();
+        } else {
+          const res = await fetch('/api/dag');
+          dag = await res.json();
+        }
+        if (!dag) return;
+
+        document.getElementById('dag-job-title').textContent = dag.active_job_title || 'Awaiting Task';
+
+        if (dag.stages) {
+          for (let i = 0; i < 4; i++) {
+            const st = dag.stages[i];
+            const el = document.getElementById('stage-' + (i + 1));
+            const stat = document.getElementById('stage-' + (i + 1) + '-status');
+            const desc = document.getElementById('stage-' + (i + 1) + '-desc');
+            if (st && el) {
+              el.className = 'dag-stage ' + st.status;
+              stat.textContent = st.status.toUpperCase();
+              stat.className = 'badge ' + (st.status === 'completed' ? 'badge-green' : (st.status === 'running' ? 'badge-blue' : 'badge-amber'));
+              if (st.description) {
+                desc.textContent = st.duration ? `[${st.duration}] ${st.description}` : st.description;
+              }
+            }
+          }
+        }
+
+        if (dag.has_output) {
+          document.getElementById('output-card').style.display = 'block';
+          fetchOutput(dag.active_job_id);
+        }
+      } catch (e) {}
+    }
+
+    async function fetchOutput(taskID) {
+      try {
+        const res = await fetch('/api/output?task_id=' + (taskID || ''));
+        const out = await res.json();
+        if (out) {
+          document.getElementById('out-task-id').textContent = out.task_id;
+          document.getElementById('out-worker').textContent = out.worker_node_id;
+          document.getElementById('out-fuel').textContent = (out.fuel_consumed || 0).toLocaleString() + ' instructions';
+          document.getElementById('out-cid').textContent = out.output_cid;
+          document.getElementById('output-payload-box').textContent = out.output_text;
+        }
+      } catch (e) {}
+    }
+
+    async function pollVault() {
+      try {
+        let v;
+        if (window.GetVaultStatus) {
+          v = await window.GetVaultStatus();
+        } else {
+          const res = await fetch('/api/vault');
+          v = await res.json();
+        }
+        if (!v) return;
+
+        document.getElementById('vault-segment-id').textContent = v.segment_id || 'seg_00';
+        document.getElementById('safety-label').textContent = v.online_shards + ' / ' + v.total_shards + ' Shards Online (Safety: ' + (v.safety_margin_percent || 0).toFixed(1) + '%)';
+        document.getElementById('safety-bar').style.width = Math.min(100, Math.max(5, v.safety_margin_percent || 0)) + '%';
+
+        // Render 80-shard matrix
+        const matrix = document.getElementById('cauchy-matrix');
+        if (v.shards && v.shards.length > 0) {
+          matrix.innerHTML = '';
+          v.shards.forEach((sh, idx) => {
+            const div = document.createElement('div');
+            let cls = 'shard-box ';
+            if (!sh.online) {
+              cls += 'shard-offline';
+            } else if (sh.is_parity) {
+              cls += 'shard-parity';
+            } else {
+              cls += 'shard-data';
+            }
+            if (sh.is_anchor) cls += ' shard-anchor';
+            div.className = cls;
+            div.textContent = (sh.is_parity ? 'P' : 'D') + String(idx).padStart(2, '0');
+
+            div.onmouseenter = (e) => showTooltip(e, sh);
+            div.onmouseleave = hideTooltip;
+            matrix.appendChild(div);
+          });
+        }
+
+        // Audit logs
+        if (v.audit_logs) {
+          document.getElementById('audit-log-box').textContent = v.audit_logs.join('\n');
+        }
+      } catch (e) {}
+    }
+
+    const tipEl = document.getElementById('tooltip');
+    function showTooltip(e, sh) {
+      tipEl.style.display = 'block';
+      tipEl.style.left = (e.clientX + 12) + 'px';
+      tipEl.style.top = (e.clientY + 12) + 'px';
+      tipEl.innerHTML = `<strong>${sh.shard_id}</strong><br>Type: ${sh.is_parity ? 'Parity Shard' : 'Data Shard'}<br>Anchor: ${sh.is_anchor ? 'Yes (Campus Lab Pin)' : 'No'}<br>Size: ${(sh.size_bytes/1024/1024).toFixed(1)} MiB<br>Node: ${sh.node_id || 'local'}<br>Status: ${sh.online ? 'Online' : 'Offline'}`;
+    }
+    function hideTooltip() { tipEl.style.display = 'none'; }
+
+    // Start real-time polling
+    setInterval(pollStats, 1000);
+    setInterval(pollDAG, 1000);
+    setInterval(pollVault, 2000);
+    pollStats();
+    pollDAG();
+    pollVault();
+  </script>
+</body>
+</html>
