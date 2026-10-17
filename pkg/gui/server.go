@@ -8,7 +8,11 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"path/filepath"
 	"sync"
+	"time"
+
+	"unicompute/pkg/web"
 )
 
 //go:embed assets/studio.html
@@ -124,6 +128,22 @@ func StartServer(app *StudioApp, preferredPort int) (*ServerInstance, error) {
 		writeJSON(w, http.StatusOK, res)
 	})
 
+	mux.HandleFunc("/api/load-sample", func(w http.ResponseWriter, r *http.Request) {
+		filename := r.URL.Query().Get("file")
+		if filename == "" {
+			filename = "genomic_sample.fa"
+		}
+		targetFile := filepath.Base(filename)
+		data, err := readOptionalTestData(filepath.Join("test_data", targetFile))
+		if err != nil {
+			http.Error(w, fmt.Sprintf("sample file not found: %v", err), http.StatusNotFound)
+			return
+		}
+		w.Header().Set("Content-Type", "application/octet-stream")
+		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", targetFile))
+		_, _ = w.Write(data)
+	})
+
 	mux.HandleFunc("/api/submit", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -184,6 +204,130 @@ func StartServer(app *StudioApp, preferredPort int) (*ServerInstance, error) {
 			return
 		}
 		writeJSON(w, http.StatusOK, out)
+	})
+
+	// Worker Agent Connection & Configuration APIs
+	mux.HandleFunc("/api/worker/connect", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		var cfg WorkerConnectionConfig
+		if err := json.NewDecoder(r.Body).Decode(&cfg); err != nil {
+			http.Error(w, "invalid request body", http.StatusBadRequest)
+			return
+		}
+		if err := app.StartWorker(cfg); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		writeJSON(w, http.StatusOK, app.GetWorkerStatus())
+	})
+
+	mux.HandleFunc("/api/worker/disconnect", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		if err := app.StopWorker(); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		writeJSON(w, http.StatusOK, app.GetWorkerStatus())
+	})
+
+	mux.HandleFunc("/api/worker/reconnect", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		if err := app.ReconnectWorker(); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		writeJSON(w, http.StatusOK, app.GetWorkerStatus())
+	})
+
+	mux.HandleFunc("/api/worker/status", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, app.GetWorkerStatus())
+	})
+
+	mux.HandleFunc("/api/worker/receipts", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, app.GetWorkerReceipts())
+	})
+
+	mux.HandleFunc("/api/worker/config", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		var cfg WorkerConnectionConfig
+		if err := json.NewDecoder(r.Body).Decode(&cfg); err != nil {
+			http.Error(w, "invalid request body", http.StatusBadRequest)
+			return
+		}
+		if err := app.UpdateWorkerConfig(cfg); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		writeJSON(w, http.StatusOK, app.GetWorkerStatus())
+	})
+
+	// Dataset Manifest Publishing to Coordinator
+	mux.HandleFunc("/api/publish-manifest", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		var req PublishManifestRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "invalid request body", http.StatusBadRequest)
+			return
+		}
+		resp, err := app.PublishManifest(req)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		writeJSON(w, http.StatusOK, resp)
+	})
+
+	// Coordinator & Cluster Fleet Monitoring Proxies
+	mux.HandleFunc("/api/cluster/status", func(w http.ResponseWriter, r *http.Request) {
+		coordURL := r.URL.Query().Get("coordinator")
+		st, err := app.GetClusterStatus(coordURL)
+		if err != nil {
+			writeJSON(w, http.StatusOK, map[string]interface{}{
+				"nodes_online":     0,
+				"tasks_running":    0,
+				"active_job_title": fmt.Sprintf("Coordinator unreachable: %v", err),
+				"fleet":            []web.FleetNodeStatus{},
+				"logs":             []string{fmt.Sprintf("[%s] Cannot reach coordinator: %v", time.Now().Format("15:04:05"), err)},
+				"audit_logs":       []string{},
+				"error":            err.Error(),
+			})
+			return
+		}
+		writeJSON(w, http.StatusOK, st)
+	})
+
+	mux.HandleFunc("/api/cluster/fleet", func(w http.ResponseWriter, r *http.Request) {
+		coordURL := r.URL.Query().Get("coordinator")
+		fleet, err := app.GetClusterFleet(coordURL)
+		if err != nil {
+			writeJSON(w, http.StatusOK, map[string]interface{}{
+				"fleet":        []web.FleetNodeStatus{},
+				"nodes_online": 0,
+				"count":        0,
+				"error":        err.Error(),
+			})
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]interface{}{
+			"fleet":        fleet,
+			"nodes_online": len(fleet),
+			"count":        len(fleet),
+		})
 	})
 
 	addr := fmt.Sprintf("127.0.0.1:%d", preferredPort)

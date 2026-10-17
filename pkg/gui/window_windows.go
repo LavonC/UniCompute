@@ -4,19 +4,25 @@ package gui
 
 import (
 	"log"
+	"os"
+	"os/exec"
 
 	"github.com/jchv/go-webview2"
+
+	"unicompute/pkg/protocol"
+	"unicompute/pkg/web"
 )
 
-// DesktopWindow wraps the native Windows WebView2 application window.
+// DesktopWindow wraps the native Windows WebView2 application window or standalone app host.
 type DesktopWindow struct {
 	wv        webview2.WebView
 	app       *StudioApp
 	serverURL string
 	headless  bool
+	appCmd    *exec.Cmd
 }
 
-// NewDesktopWindow creates a native Windows WebView2 desktop window.
+// NewDesktopWindow creates a native Windows WebView2 desktop window or standalone app window.
 func NewDesktopWindow(app *StudioApp, serverURL string, headless bool) (*DesktopWindow, error) {
 	dw := &DesktopWindow{
 		app:       app,
@@ -37,14 +43,14 @@ func NewDesktopWindow(app *StudioApp, serverURL string, headless bool) (*Desktop
 			Title:  "UniCompute Desktop Studio (v2.4.1)",
 			Width:  1280,
 			Height: 860,
-			IconId: 32512, // IDI_APPLICATION
+			IconId: 0,
 			Center: true,
 		},
 	})
 
 	if wv == nil {
-		log.Println("[Desktop Window] Notice: WebView2 runtime unavailable, defaulting to server mode.")
-		dw.headless = true
+		log.Println("[Desktop Window] Launching native standalone desktop app window via Microsoft Edge App Mode...")
+		dw.appCmd = OpenNativeAppWindow(serverURL)
 		return dw, nil
 	}
 
@@ -85,6 +91,30 @@ func NewDesktopWindow(app *StudioApp, serverURL string, headless bool) (*Desktop
 		app.RestoreWindow()
 		return nil
 	})
+	_ = wv.Bind("StartWorker", func(cfg WorkerConnectionConfig) error {
+		return app.StartWorker(cfg)
+	})
+	_ = wv.Bind("StopWorker", func() error {
+		return app.StopWorker()
+	})
+	_ = wv.Bind("ReconnectWorker", func() error {
+		return app.ReconnectWorker()
+	})
+	_ = wv.Bind("GetWorkerStatus", func() WorkerConnectionStatus {
+		return app.GetWorkerStatus()
+	})
+	_ = wv.Bind("GetWorkerReceipts", func() []*protocol.ExecutionReceipt {
+		return app.GetWorkerReceipts()
+	})
+	_ = wv.Bind("PublishManifest", func(req PublishManifestRequest) (PublishManifestResponse, error) {
+		return app.PublishManifest(req)
+	})
+	_ = wv.Bind("GetClusterStatus", func(coordURL string) (*web.ClusterStatusResponse, error) {
+		return app.GetClusterStatus(coordURL)
+	})
+	_ = wv.Bind("GetClusterFleet", func(coordURL string) ([]web.FleetNodeStatus, error) {
+		return app.GetClusterFleet(coordURL)
+	})
 
 	// Navigate to embedded Studio UI
 	wv.Navigate(serverURL)
@@ -94,13 +124,18 @@ func NewDesktopWindow(app *StudioApp, serverURL string, headless bool) (*Desktop
 
 // Run starts the native Windows message and event loop.
 func (dw *DesktopWindow) Run() {
-	if dw.headless || dw.wv == nil {
-		// In headless mode, wait on app termination
-		<-dw.app.stopCh
+	if dw.wv != nil {
+		dw.wv.Run()
 		return
 	}
 
-	dw.wv.Run()
+	if dw.appCmd != nil && dw.appCmd.Process != nil {
+		_ = dw.appCmd.Wait()
+		return
+	}
+
+	// In headless mode, wait on app termination
+	<-dw.app.stopCh
 }
 
 // Close destroys the native window.
@@ -108,4 +143,31 @@ func (dw *DesktopWindow) Close() {
 	if dw.wv != nil {
 		dw.wv.Destroy()
 	}
+	if dw.appCmd != nil && dw.appCmd.Process != nil {
+		_ = dw.appCmd.Process.Kill()
+	}
+}
+
+// OpenNativeAppWindow launches Microsoft Edge in standalone app window mode or default system browser.
+func OpenNativeAppWindow(url string) *exec.Cmd {
+	edgePaths := []string{
+		`C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`,
+		`C:\Program Files\Microsoft\Edge\Application\msedge.exe`,
+		`msedge.exe`,
+	}
+
+	for _, p := range edgePaths {
+		if _, err := os.Stat(p); err == nil || p == "msedge.exe" {
+			cmd := exec.Command(p, "--app="+url, "--window-size=1280,860", "--new-window")
+			if err := cmd.Start(); err == nil {
+				log.Printf("[Desktop Window] Launched native standalone app window via %s", p)
+				return cmd
+			}
+		}
+	}
+
+	// Fallback to default browser via rundll32
+	cmd := exec.Command("rundll32", "url.dll,FileProtocolHandler", url)
+	_ = cmd.Start()
+	return cmd
 }

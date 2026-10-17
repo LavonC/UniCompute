@@ -45,6 +45,8 @@ type ClusterStatusResponse struct {
 	TotalRAMMB     int64             `json:"total_ram_mb"`
 	StorageBytes   int64             `json:"storage_bytes"`
 	TotalSegments  int               `json:"total_segments"`
+	OnlineShards   int               `json:"online_shards"`
+	TotalShards    int               `json:"total_shards"`
 	Fleet          []FleetNodeStatus `json:"fleet"`
 	ActiveJob      *ActiveJobInfo    `json:"active_job,omitempty"`
 	JobStages      []JobStage        `json:"job_stages,omitempty"`

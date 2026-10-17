@@ -24,6 +24,7 @@ type ExecutionRequest struct {
 	TelemetryChan       chan<- protocol.LiveTelemetry
 	SignedBinarySig     string // For Tier 3 native admission verification
 	InstitutionalPubKey string
+	ManifestDigest      []byte
 	Timeout             time.Duration
 }
 

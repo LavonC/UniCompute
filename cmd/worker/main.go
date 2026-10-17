@@ -439,6 +439,20 @@ func (a *WorkerAgent) executeTask(task *protocol.TaskCapsule) {
 		}
 	}
 
+	manifest := protocol.Manifest{
+		TaskID:           task.TaskID,
+		Name:             task.Name,
+		MinTier:          task.MinTier,
+		Entrypoint:       task.Entrypoint,
+		RequiredDatasets: task.RequiredDatasets,
+		FuelLimit:        task.FuelLimit,
+		MaxMemoryMB:      task.MaxMemoryMB,
+		Args:             task.Args,
+		Env:              task.Env,
+		ResearcherPubKey: task.ResearcherPubKey,
+	}
+	manifestDigest, _ := manifest.CanonicalDigest()
+
 	execReq := &sandbox.ExecutionRequest{
 		TaskID:              task.TaskID,
 		MinTier:             task.MinTier,
@@ -451,6 +465,7 @@ func (a *WorkerAgent) executeTask(task *protocol.TaskCapsule) {
 		Env:                 task.Env,
 		InstitutionalPubKey: task.ResearcherPubKey,
 		SignedBinarySig:     task.Signature,
+		ManifestDigest:      manifestDigest,
 	}
 
 	var sb sandbox.Sandbox

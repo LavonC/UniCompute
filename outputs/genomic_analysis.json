@@ -1,0 +1,21 @@
+{
+  "tier": "Tier 2: Hardened Process Container",
+  "status": "COMPLETED_VERIFIED",
+  "sequence_length_bp": 1440,
+  "gc_content_pct": 50.0,
+  "nucleotide_counts": {
+    "adenine": 360,
+    "cytosine": 360,
+    "guanine": 360,
+    "thymine": 360
+  },
+  "top_codons": {
+    "CGA": 320,
+    "GAT": 320,
+    "ATC": 320,
+    "TCG": 280,
+    "ATG": 40
+  },
+  "job_object_enforced": true,
+  "isolation_level": "Filesystem Jail & Restricted Network"
+}

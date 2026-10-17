@@ -211,6 +211,7 @@ func main() {
 
 	// REST APIs
 	mux.HandleFunc("/api/cluster/status", coord.handleClusterStatus)
+	mux.HandleFunc("/api/cluster/fleet", coord.handleClusterFleet)
 	mux.HandleFunc("/api/tasks/submit", coord.handleTaskSubmit)
 	mux.HandleFunc("/api/tasks/sign", coord.handleTaskSign)
 	mux.HandleFunc("/api/receipts/verify", coord.handleReceiptVerify)
@@ -288,6 +289,17 @@ func (s *CoordinatorServer) handleClusterStatus(w http.ResponseWriter, r *http.R
 	var totalStorageBytes int64
 	for _, d := range s.datasets {
 		totalStorageBytes += d.TotalBytes
+	}
+
+	onlineShards := 0
+	totalShards := 0
+	for _, seg := range s.segments {
+		totalShards += len(seg.Shards)
+		for _, sh := range seg.Shards {
+			if sh.Online {
+				onlineShards++
+			}
+		}
 	}
 
 	activeJobTitle := "No active jobs submitted"
@@ -426,6 +438,8 @@ func (s *CoordinatorServer) handleClusterStatus(w http.ResponseWriter, r *http.R
 		TotalRAMMB:     totalRAMMB,
 		StorageBytes:   totalStorageBytes,
 		TotalSegments:  len(s.segments),
+		OnlineShards:   onlineShards,
+		TotalShards:    totalShards,
 		Fleet:          fleet,
 		ActiveJob:      activeJob,
 		JobStages:      stages,
@@ -434,6 +448,36 @@ func (s *CoordinatorServer) handleClusterStatus(w http.ResponseWriter, r *http.R
 	}
 
 	web.WriteJSON(w, http.StatusOK, resp)
+}
+
+func (s *CoordinatorServer) handleClusterFleet(w http.ResponseWriter, r *http.Request) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var fleet []web.FleetNodeStatus
+	for _, n := range s.nodes {
+		localityStr := "WAN Cold"
+		if len(n.RAMCachedSegments) > 0 {
+			localityStr = "Tier R (RAM)"
+		} else if len(n.CachedSegments) > 0 {
+			localityStr = "Tier L (NVMe)"
+		}
+
+		fleet = append(fleet, web.FleetNodeStatus{
+			ID:       n.ID,
+			Zone:     string(n.SubnetZone),
+			Tier:     int(n.MaxTier),
+			Locality: localityStr,
+			Credit:   s.reputation.GetCreditScore(n.ID),
+			Online:   n.Online,
+		})
+	}
+
+	web.WriteJSON(w, http.StatusOK, map[string]interface{}{
+		"fleet":        fleet,
+		"nodes_online": len(fleet),
+		"count":        len(fleet),
+	})
 }
 
 func (s *CoordinatorServer) handleTaskSign(w http.ResponseWriter, r *http.Request) {

@@ -164,11 +164,12 @@ func (h *SignalingHub) ConnectedNodes() []string {
 
 // Client represents a node's outbound persistent connection to the Coordinator.
 type Client struct {
-	url      string
-	conn     *websocket.Conn
-	mu       sync.Mutex
-	handlers map[string][]HandlerFunc
-	stopCh   chan struct{}
+	url       string
+	conn      *websocket.Conn
+	mu        sync.Mutex
+	handlers  map[string][]HandlerFunc
+	stopCh    chan struct{}
+	closeOnce sync.Once
 }
 
 // DialCoordinator connects a worker or requester to the central coordinator over WSS/WS.
@@ -207,10 +208,16 @@ func (c *Client) Send(msg *protocol.SignalingMessage) error {
 	return c.conn.WriteJSON(msg)
 }
 
-// Close disconnects the client.
+// Close disconnects the client idempotently.
 func (c *Client) Close() error {
-	close(c.stopCh)
-	return c.conn.Close()
+	var err error
+	c.closeOnce.Do(func() {
+		close(c.stopCh)
+		if c.conn != nil {
+			err = c.conn.Close()
+		}
+	})
+	return err
 }
 
 func (c *Client) readLoop() {

@@ -60,6 +60,8 @@
     .badge-amber { background: rgba(245, 158, 11, 0.15); color: var(--amber); border: 1px solid rgba(245, 158, 11, 0.4); }
     .badge-blue { background: rgba(56, 189, 248, 0.15); color: var(--cyan); border: 1px solid rgba(56, 189, 248, 0.4); }
     .badge-gold { background: rgba(250, 204, 21, 0.15); color: var(--gold); border: 1px solid rgba(250, 204, 21, 0.4); }
+    .badge-rose { background: rgba(244, 63, 94, 0.15); color: var(--rose); border: 1px solid rgba(244, 63, 94, 0.4); }
+    .badge-dim { background: rgba(255, 255, 255, 0.08); color: var(--text-dim); border: 1px solid rgba(255, 255, 255, 0.15); }
     
     .btn {
       background: #1e293b; color: var(--text); border: 1px solid var(--card-border);
@@ -69,8 +71,11 @@
     .btn:hover { background: #334155; border-color: var(--cyan); }
     .btn-primary { background: #0284c7; border-color: #38bdf8; color: white; }
     .btn-primary:hover { background: #0369a1; }
+    .btn-success { background: #059669; border-color: #10b981; color: white; }
+    .btn-success:hover { background: #047857; }
     .btn-danger { background: #be123c; border-color: #f43f5e; color: white; }
     .btn-danger:hover { background: #9f1239; }
+    .btn-sm { padding: 4px 8px; font-size: 0.75rem; border-radius: 5px; }
     
     /* Layout Container */
     .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
@@ -82,6 +87,7 @@
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
     .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
     .card {
       background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px;
       padding: 20px; backdrop-filter: blur(12px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
@@ -99,6 +105,15 @@
     input[type=range] {
       width: 100%; height: 6px; background: #1e293b; border-radius: 4px;
       accent-color: var(--cyan); cursor: pointer; outline: none;
+    }
+
+    input[type=text], input[type=number], select {
+      background: #030508; border: 1px solid var(--card-border); border-radius: 6px;
+      color: var(--text); padding: 8px 12px; font-size: 0.85rem; outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type=text]:focus, input[type=number]:focus, select:focus {
+      border-color: var(--cyan); box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
     }
     
     /* Toggles */
@@ -132,12 +147,12 @@
 
     /* Researcher Dropzone */
     .dropzone {
-      border: 2px dashed rgba(56, 189, 248, 0.4); border-radius: 12px; padding: 32px 20px;
+      border: 2px dashed rgba(56, 189, 248, 0.4); border-radius: 12px; padding: 28px 20px;
       text-align: center; background: rgba(15, 23, 42, 0.6); cursor: pointer;
-      transition: all 0.2s; margin-bottom: 18px;
+      transition: all 0.2s; margin-bottom: 14px;
     }
     .dropzone:hover, .dropzone.dragover { border-color: var(--cyan); background: rgba(56, 189, 248, 0.08); transform: scale(1.005); }
-    .dropzone-icon { font-size: 2.5rem; margin-bottom: 10px; color: var(--cyan); }
+    .dropzone-icon { font-size: 2.5rem; margin-bottom: 8px; color: var(--cyan); }
     
     /* 4-Stage DAG Visualizer */
     .dag-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
@@ -167,6 +182,29 @@
     .shard-anchor { border: 2px solid var(--gold) !important; box-shadow: 0 0 4px rgba(250, 204, 21, 0.5); }
     .shard-offline { background: #e11d48 !important; opacity: 0.6; }
 
+    /* Fleet Table */
+    .fleet-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-top: 10px; }
+    .fleet-table th, .fleet-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .fleet-table th { color: var(--cyan); font-weight: 700; background: rgba(0, 0, 0, 0.3); }
+    .fleet-table tr:hover { background: rgba(255,255,255,0.02); }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(6px);
+      display: none; align-items: center; justify-content: center; z-index: 1000;
+    }
+    .modal-box {
+      background: #0b1120; border: 1px solid var(--cyan); border-radius: 12px;
+      width: 90%; max-width: 800px; max-height: 85vh; display: flex; flex-direction: column;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.8); overflow: hidden;
+    }
+    .modal-header {
+      padding: 16px 20px; border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+
     /* Tooltip */
     #tooltip {
       position: fixed; display: none; background: #0f172a; border: 1px solid var(--cyan);
@@ -191,29 +229,93 @@
     <!-- Mode Navigation Tabs -->
     <nav class="nav-tabs">
       <button class="tab-btn active" onclick="switchMode('donor', this)">
-        <span>💻</span> Donor Node Agent
+        <span>💻</span> Donor Worker
       </button>
       <button class="tab-btn" onclick="switchMode('researcher', this)">
         <span>🔬</span> Researcher Studio
       </button>
       <button class="tab-btn" onclick="switchMode('vault', this)">
-        <span>🗄️</span> Storage Vault Explorer
+        <span>🗄️</span> Storage Vault
+      </button>
+      <button class="tab-btn" onclick="switchMode('cluster', this)">
+        <span>🌐</span> Cluster Fleet & Jobs
       </button>
     </nav>
 
     <!-- Header Actions & Telemetry -->
     <div class="header-actions">
-      <span id="node-id-badge" class="badge badge-blue">Node: <span id="node-id">...</span></span>
+      <span id="coord-status-badge" class="badge badge-dim">WS: DISCONNECTED</span>
       <span id="power-badge" class="badge badge-green">🔌 AC Mains</span>
       <span id="status-badge" class="badge badge-green">ACTIVE</span>
-      <button id="pause-btn" class="btn" onclick="togglePause()">Pause Compute</button>
-      <button id="tray-btn" class="btn" onclick="minimizeToTray()" title="Minimize to Windows System Tray"><span>📥</span> Tray</button>
+      <button id="pause-btn" class="btn btn-sm" onclick="togglePause()">Pause Compute</button>
+      <button id="tray-btn" class="btn btn-sm" onclick="minimizeToTray()" title="Minimize to Windows System Tray"><span>📥</span> Tray</button>
     </div>
   </header>
 
   <main class="container">
-    <!-- MODE 1: DONOR NODE AGENT (Figure 8) -->
+    <!-- MODE 1: DONOR NODE AGENT -->
     <section id="mode-donor" class="tab-content active">
+      <!-- Live Worker Operation & Central Coordinator Connection Card -->
+      <div class="card" style="border-color: rgba(56, 189, 248, 0.4);">
+        <div class="card-title">
+          <span>Central Coordinator Connection & Worker Operation</span>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <span id="worker-live-badge" class="badge badge-dim">OFFLINE</span>
+            <span id="worker-ping-badge" class="badge badge-dim" style="display: none;">0 ms</span>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Coordinator WebSocket Endpoint</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="worker-coord-input" value="ws://localhost:8443/ws" style="flex: 1;" placeholder="wss://unicompute.onrender.com/ws">
+              <button class="btn btn-sm" onclick="setWorkerCoord('ws://localhost:8443/ws')">Local</button>
+              <button class="btn btn-sm" onclick="setWorkerCoord('wss://unicompute.onrender.com/ws')">Render Cloud</button>
+            </div>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Donor Node ID</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="worker-node-id-input" style="flex: 1;" placeholder="node-host-xxxx">
+              <button class="btn btn-sm" onclick="regenerateNodeID()">🎲 New ID</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top: 12px;">
+          <div>
+            <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Subnet Zone (§4.1)</label>
+            <select id="worker-zone-select" style="width: 100%;">
+              <option value="Campus Lab (10GbE)">Campus Lab (10GbE LAN - Zero RTT, Anchor Shards)</option>
+              <option value="Dorm Wi-Fi">Dorm Wi-Fi (Low Latency, High Uptime)</option>
+              <option value="Residential CGNAT">Residential CGNAT (Public Relayed WAN)</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Trusted Institutional Ed25519 Keys (Tier 3 Admission)</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="worker-trusted-keys" style="flex: 1;" placeholder="Comma-separated public keys">
+              <button class="btn btn-sm" onclick="addLocalResearcherKey()">+ My Key</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06);">
+          <div style="display: flex; gap: 16px; font-size: 0.8rem;">
+            <span>Tasks Dispatched: <strong id="worker-tasks-assigned" style="color: var(--cyan);">0</strong></span>
+            <span>Receipts Signed: <strong id="worker-receipts-signed" style="color: var(--emerald);">0</strong></span>
+            <span>Heartbeat: <strong id="worker-last-hb" style="color: var(--text-dim);">Never</strong></span>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button id="worker-connect-btn" class="btn btn-success" onclick="connectWorker()">🟢 Start & Connect Worker</button>
+            <button id="worker-disconnect-btn" class="btn btn-danger" style="display: none;" onclick="disconnectWorker()">🔴 Disconnect</button>
+            <button id="worker-reconnect-btn" class="btn" onclick="reconnectWorker()">🔄 Reconnect</button>
+            <button class="btn" onclick="viewWorkerReceipts()">📜 Receipts Log</button>
+          </div>
+        </div>
+      </div>
+
       <div class="grid-2">
         <!-- Resource Envelope Sliders -->
         <div class="card">
@@ -267,7 +369,7 @@
         <div class="card">
           <div class="card-title">
             <span>Active Task Execution Monitor</span>
-            <span class="badge badge-blue" id="donor-locality-badge">Tier L Hit: Zero Network Fetch</span>
+            <span class="badge badge-blue" id="donor-locality-badge">Ready</span>
           </div>
 
           <div class="tier-pills">
@@ -277,8 +379,8 @@
             <div class="tier-pill tier-active">
               <strong>Tier 2: JobObject</strong><br><small>Hardened Container</small>
             </div>
-            <div class="tier-pill" style="color: var(--text-dim);">
-              <strong>Tier 3: GPU</strong><br><small>Signed Core Pool</small>
+            <div class="tier-pill tier-active" id="tier-3-pill">
+              <strong>Tier 3: GPU</strong><br><small>Institutional Signed</small>
             </div>
           </div>
 
@@ -337,26 +439,64 @@
       </div>
     </section>
 
-    <!-- MODE 2: RESEARCHER STUDIO (Figure 9) -->
+    <!-- MODE 2: RESEARCHER STUDIO -->
     <section id="mode-researcher" class="tab-content">
+      <!-- Target Dispatch Mode Configuration -->
+      <div class="card" style="border-color: rgba(56, 189, 248, 0.4);">
+        <div class="card-title">
+          <span>Target Execution Engine & Coordinator Configuration</span>
+          <span id="target-health-badge" class="badge badge-dim">Ping: Pending</span>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 6px;">Dispatch Mode</label>
+            <div style="display: flex; gap: 12px;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="radio" name="dispatch-target" value="local" onchange="onDispatchTargetChange()">
+                <span>Local Embedded Engine</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="radio" name="dispatch-target" value="remote" checked onchange="onDispatchTargetChange()">
+                <span style="color: var(--cyan); font-weight: 600;">Remote Central Coordinator (PACMan Cluster)</span>
+              </label>
+            </div>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Target Coordinator HTTP API</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="target-coord-input" value="http://localhost:8443" style="flex: 1;" placeholder="https://unicompute.onrender.com">
+              <button class="btn btn-sm" onclick="setTargetCoord('http://localhost:8443')">Local</button>
+              <button class="btn btn-sm" onclick="setTargetCoord('https://unicompute.onrender.com')">Render Cloud</button>
+              <button class="btn btn-sm btn-primary" onclick="pingTargetCoordinator()">Ping</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Drag and drop dataset ingestion hub -->
       <div class="card">
         <div class="card-title">
           <span>Dataset Ingestion Hub</span>
-          <span class="badge badge-blue">FastCDC + MLE + Cauchy RS(32, 80)</span>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-sm" onclick="loadSampleDataset('genomic_sample.fa')">📁 Load test_data/genomic_sample.fa</button>
+            <span class="badge badge-blue">FastCDC + MLE + Cauchy RS(32, 80)</span>
+          </div>
         </div>
 
         <div class="dropzone" id="dataset-dropzone" onclick="document.getElementById('file-input').click()">
           <div class="dropzone-icon">📥</div>
-          <div style="font-size: 1.05rem; font-weight: 700; margin-bottom: 4px;">Drag & Drop Dataset File Here</div>
-          <div style="color: var(--text-dim); font-size: 0.8rem;">Supports FASTA (.fa), CSV, BIN, or raw scientific datasets. Automatically slices with FastCDC and encodes to 80 Cauchy shards.</div>
+          <div style="font-size: 1.05rem; font-weight: 700; margin-bottom: 4px;">Drag & Drop Dataset File Here or Click to Browse</div>
+          <div style="color: var(--text-dim); font-size: 0.8rem;">Supports FASTA (.fa), CSV, BIN, or raw scientific datasets. Slices into FastCDC chunks, MLE AES-256-GCM encrypted, and RS(32, 80) encoded.</div>
           <input type="file" id="file-input" style="display: none;" onchange="handleFileSelect(event)">
         </div>
 
         <div id="ingest-result-card" style="display: none; background: rgba(0,0,0,0.4); border: 1px solid var(--emerald); border-radius: 8px; padding: 14px; margin-top: 12px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <span style="font-weight: 700; color: var(--emerald);">✓ Dataset Successfully Ingested & Sharded</span>
-            <span class="badge badge-green" id="ingest-status-badge">COMMITTED TO VAULT</span>
+            <span style="font-weight: 700; color: var(--emerald);">✓ Dataset Successfully Ingested & Encoded</span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span class="badge badge-green" id="ingest-status-badge">COMMITTED TO VAULT</span>
+              <button id="publish-manifest-btn" class="btn btn-sm btn-primary" onclick="publishDatasetManifest()">📡 Publish Manifest to Coordinator</button>
+            </div>
           </div>
           <div class="grid-4" style="font-size: 0.82rem;">
             <div><span style="color: var(--text-dim);">File:</span> <strong id="res-filename">-</strong></div>
@@ -367,6 +507,9 @@
           <div style="margin-top: 10px; font-size: 0.82rem;">
             <span style="color: var(--text-dim);">Merkle Root Content ID (CID):</span>
             <code style="color: var(--cyan); word-break: break-all; margin-left: 6px;" id="res-cid">-</code>
+          </div>
+          <div id="manifest-pub-result" style="display: none; margin-top: 8px; font-size: 0.8rem; color: var(--emerald);">
+            ✓ Manifest published and registered across cluster fleet nodes!
           </div>
         </div>
       </div>
@@ -382,14 +525,14 @@
           <div class="grid-2">
             <div>
               <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Task Name</label>
-              <input type="text" id="task-name-input" value="Genomic Sequence Alignment" style="width: 100%; padding: 8px 12px; background: #030508; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);" required>
+              <input type="text" id="task-name-input" value="Genomic Sequence Analysis" style="width: 100%;" required>
             </div>
             <div>
               <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Execution Tier</label>
-              <select id="task-tier-select" style="width: 100%; padding: 8px 12px; background: #030508; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);">
+              <select id="task-tier-select" onchange="onTierSelectChange()" style="width: 100%;">
                 <option value="1">Tier 1: WebAssembly WASI (Wazero Canonical-NaN)</option>
-                <option value="2">Tier 2: Hardened Process Container</option>
-                <option value="3">Tier 3: Hardware-Accelerated Native GPU</option>
+                <option value="2">Tier 2: Hardened Process Container (Win32 JobObject)</option>
+                <option value="3">Tier 3: Hardware-Accelerated Native GPU (Ed25519 Signed)</option>
               </select>
             </div>
           </div>
@@ -397,26 +540,27 @@
           <div class="grid-2" style="margin-top: 12px;">
             <div>
               <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Required Dataset CID (Optional)</label>
-              <input type="text" id="task-dataset-cid" placeholder="Auto-filled from Ingestion or enter Merkle CID" style="width: 100%; padding: 8px 12px; background: #030508; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);">
+              <input type="text" id="task-dataset-cid" placeholder="Auto-filled from Ingestion or enter Merkle CID" style="width: 100%;">
             </div>
             <div>
               <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Instruction Fuel Limit</label>
-              <input type="number" id="task-fuel-input" value="500000000" style="width: 100%; padding: 8px 12px; background: #030508; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);">
+              <input type="number" id="task-fuel-input" value="500000000" style="width: 100%;">
             </div>
           </div>
 
           <div class="grid-2" style="margin-top: 12px;">
             <div>
-              <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Task Code Payload / Wasm Capsule</label>
+              <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Task Code Payload</label>
               <div style="display: flex; gap: 8px; align-items: center;">
-                <button type="button" class="btn" style="padding: 6px 10px;" onclick="document.getElementById('code-input').click()">Browse (.wasm)</button>
-                <span id="code-filename-label" style="font-size: 0.78rem; color: var(--cyan);">Default: Built-in Genomic Analyzer (task.wasm)</span>
+                <button type="button" class="btn btn-sm" onclick="document.getElementById('code-input').click()">Browse (.wasm, .py, .exe)</button>
+                <button type="button" class="btn btn-sm" onclick="resetCodePayload()" title="Reset to default payload for selected tier">Reset</button>
+                <span id="code-filename-label" style="font-size: 0.78rem; color: var(--cyan); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Built-in Genomic Analyzer (task.wasm)</span>
               </div>
               <input type="file" id="code-input" style="display: none;" onchange="handleCodeSelect(event)">
             </div>
             <div>
               <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Entrypoint</label>
-              <input type="text" id="task-entrypoint" value="task.wasm" style="width: 100%; padding: 8px 12px; background: #030508; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);">
+              <input type="text" id="task-entrypoint" value="task.wasm" style="width: 100%;">
             </div>
           </div>
 
@@ -424,8 +568,8 @@
             <div style="font-size: 0.78rem; color: var(--text-dim);">
               Signing with Researcher Key: <code style="color: var(--amber);" id="researcher-pub-preview">researcher.key (Ed25519)</code>
             </div>
-            <button type="submit" class="btn btn-primary">
-              <span>🚀</span> Sign & Dispatch Task Capsule
+            <button type="submit" class="btn btn-primary" id="dispatch-submit-btn">
+              <span>🚀</span> Sign with Ed25519 & Dispatch Task Capsule
             </button>
           </div>
         </form>
@@ -435,7 +579,7 @@
       <div class="card">
         <div class="card-title">
           <span>Interactive 4-Stage DAG Pipeline Visualizer</span>
-          <span class="badge badge-blue" id="dag-job-title">Job: -</span>
+          <span class="badge badge-blue" id="dag-job-title">Job: Awaiting Submission</span>
         </div>
 
         <div class="dag-grid" id="dag-container">
@@ -443,7 +587,7 @@
           <div class="dag-stage" id="stage-1">
             <div class="dag-stage-header">
               <span>STAGE 1</span>
-              <span class="badge badge-blue" id="stage-1-status">IDLE</span>
+              <span class="badge badge-dim" id="stage-1-status">IDLE</span>
             </div>
             <div class="dag-stage-name">Ingestion & Merkle Index</div>
             <div class="dag-stage-desc" id="stage-1-desc">FastCDC chunking & Merkle tree verification</div>
@@ -453,7 +597,7 @@
           <div class="dag-stage" id="stage-2">
             <div class="dag-stage-header">
               <span>STAGE 2</span>
-              <span class="badge badge-blue" id="stage-2-status">IDLE</span>
+              <span class="badge badge-dim" id="stage-2-status">IDLE</span>
             </div>
             <div class="dag-stage-name">PACMan Locality Dispatch</div>
             <div class="dag-stage-desc" id="stage-2-desc">Convex scoring for Tier R/L cache residency</div>
@@ -463,17 +607,17 @@
           <div class="dag-stage" id="stage-3">
             <div class="dag-stage-header">
               <span>STAGE 3</span>
-              <span class="badge badge-blue" id="stage-3-status">IDLE</span>
+              <span class="badge badge-dim" id="stage-3-status">IDLE</span>
             </div>
             <div class="dag-stage-name">Sandbox Grid Solver</div>
-            <div class="dag-stage-desc" id="stage-3-desc">Wazero WASI execution with fuel metering</div>
+            <div class="dag-stage-desc" id="stage-3-desc">Deterministic sandbox execution with fuel metering</div>
           </div>
 
           <!-- Stage 4 -->
           <div class="dag-stage" id="stage-4">
             <div class="dag-stage-header">
               <span>STAGE 4</span>
-              <span class="badge badge-blue" id="stage-4-status">IDLE</span>
+              <span class="badge badge-dim" id="stage-4-status">IDLE</span>
             </div>
             <div class="dag-stage-name">Attestation & Auditing</div>
             <div class="dag-stage-desc" id="stage-4-desc">Ed25519 receipt verification & spot-check</div>
@@ -485,7 +629,10 @@
       <div class="card" id="output-card" style="display: none; border-color: rgba(16, 185, 129, 0.4);">
         <div class="card-title">
           <span style="color: var(--emerald);">✓ Verified Scientific Output Payload</span>
-          <button class="btn" onclick="copyOutputPayload()">Copy Payload</button>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-sm" onclick="copyOutputPayload()">Copy Payload</button>
+            <button class="btn btn-sm" onclick="downloadOutputFile()">Save JSON</button>
+          </div>
         </div>
         <div class="grid-4" style="font-size: 0.82rem; margin-bottom: 12px;">
           <div><span style="color: var(--text-dim);">Task ID:</span> <strong id="out-task-id" style="color: var(--cyan);">-</strong></div>
@@ -497,22 +644,22 @@
       </div>
     </section>
 
-    <!-- MODE 3: STORAGE VAULT EXPLORER (Figure 10) -->
+    <!-- MODE 3: STORAGE VAULT EXPLORER -->
     <section id="mode-vault" class="tab-content">
       <div class="card">
         <div class="card-title">
           <span>Cauchy Reed-Solomon RS(32, 80) Shard Dispersal Matrix</span>
-          <span style="font-size: 0.82rem; color: var(--text-dim);">Inspecting Segment: <code style="color: var(--cyan);" id="vault-segment-id">seg_demo_01</code></span>
+          <span style="font-size: 0.82rem; color: var(--text-dim);">Segment: <code style="color: var(--cyan);" id="vault-segment-id">-</code></span>
         </div>
 
         <!-- Reconstruction Safety Margin Gauge -->
         <div style="background: rgba(0,0,0,0.3); padding: 16px; border-radius: 8px; margin-bottom: 18px;">
           <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem;">
             <span>Reconstruction Safety Margin Gauge:</span>
-            <span style="font-weight: 700; color: var(--emerald);" id="safety-label">78 / 80 Shards Online (Safety: 95.8%)</span>
+            <span style="font-weight: 700; color: var(--emerald);" id="safety-label">0 / 0 Shards Online</span>
           </div>
           <div style="background: #1e293b; height: 16px; border-radius: 8px; overflow: hidden; position: relative;">
-            <div id="safety-bar" style="background: linear-gradient(90deg, #e11d48, #f59e0b 40%, #10b981 60%); width: 95%; height: 100%;"></div>
+            <div id="safety-bar" style="background: linear-gradient(90deg, #e11d48, #f59e0b 40%, #10b981 60%); width: 0%; height: 100%;"></div>
             <div style="position: absolute; left: 40%; top: 0; bottom: 0; width: 2px; background: white;" title="Floor: 32"></div>
             <div style="position: absolute; left: 60%; top: 0; bottom: 0; width: 2px; background: #38bdf8;" title="Lazy Repair: 48"></div>
           </div>
@@ -524,14 +671,15 @@
           </div>
         </div>
 
-        <!-- 80-Shard Cauchy Matrix Visualizer -->
         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; color: var(--text-dim); margin-bottom: 8px;">
           <span>32 Data Shards (D_00..D_31) in Blue | 48 Parity Shards (P_32..P_79) in Green | Gold Border = Campus Lab Anchor:</span>
-          <span id="shards-summary-badge" class="badge badge-green">ALL SEGMENTS HEALTHY</span>
+          <span id="shards-summary-badge" class="badge badge-dim">AWAITING INGESTION</span>
         </div>
 
         <div class="cauchy-grid" id="cauchy-matrix">
-          <!-- Rendered dynamically via JS -->
+          <div style="grid-column: 1 / -1; padding: 40px 20px; text-align: center; color: var(--text-dim);">
+            No datasets ingested or active in vault yet. Drag & drop a dataset in Researcher Studio or click <strong>Load test_data/genomic_sample.fa</strong> to generate and inspect an 80-shard Cauchy RS(32, 80) matrix.
+          </div>
         </div>
 
         <div style="display: flex; gap: 20px; font-size: 0.78rem; margin-top: 10px;">
@@ -549,12 +697,151 @@
           <span class="badge badge-green">PoR & Berlekamp-Welch</span>
         </div>
         <div class="log-box" id="audit-log-box" style="height: 180px;">
-[Storage Audit] Dual-mode cryptographic auditing online.
+[Storage Vault] Dual-mode cryptographic auditing online.
 [PoR] Initial challenge sequence established.
         </div>
       </div>
     </section>
+
+    <!-- MODE 4: CLUSTER FLEET & GLOBAL JOBS (NEW!) -->
+    <section id="mode-cluster" class="tab-content">
+      <!-- Cluster Header & Coordinator Target -->
+      <div class="card">
+        <div class="card-title">
+          <span>Central Coordinator Fleet Telemetry & Global Monitor</span>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <label style="font-size: 0.78rem; color: var(--text-dim); display: flex; align-items: center; gap: 4px;">
+              <input type="checkbox" id="cluster-auto-refresh" checked> Auto-refresh (2s)
+            </label>
+            <button class="btn btn-sm btn-primary" onclick="pollClusterFleet()">🔄 Refresh Now</button>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 16px;">
+          <span style="font-size: 0.82rem; color: var(--text-dim);">Coordinator:</span>
+          <input type="text" id="cluster-coord-target" value="http://localhost:8443" style="width: 320px;" placeholder="http://localhost:8443">
+          <button class="btn btn-sm" onclick="setClusterCoordTarget('http://localhost:8443')">Local</button>
+          <button class="btn btn-sm" onclick="setClusterCoordTarget('https://unicompute.onrender.com')">Render Cloud</button>
+          <span id="cluster-coord-status-badge" class="badge badge-dim" style="margin-left: auto;">Connecting...</span>
+        </div>
+
+        <div class="grid-5">
+          <div style="background: rgba(0,0,0,0.3); padding: 14px; border-radius: 8px;">
+            <div style="color: var(--text-dim); font-size: 0.75rem;">Nodes Online</div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: var(--emerald);" id="cl-nodes-count">0</div>
+            <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 2px;" id="cl-nodes-breakdown">0 Lab / 0 Dorm</div>
+          </div>
+          <div style="background: rgba(0,0,0,0.3); padding: 14px; border-radius: 8px;">
+            <div style="color: var(--text-dim); font-size: 0.75rem;">Total Cores</div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: var(--cyan);" id="cl-total-cores">0</div>
+            <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 2px;">Compute Cores</div>
+          </div>
+          <div style="background: rgba(0,0,0,0.3); padding: 14px; border-radius: 8px;">
+            <div style="color: var(--text-dim); font-size: 0.75rem;">Total RAM</div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: var(--purple);" id="cl-total-ram">0 GB</div>
+            <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 2px;">Allocated RAM</div>
+          </div>
+          <div style="background: rgba(0,0,0,0.3); padding: 14px; border-radius: 8px;">
+            <div style="color: var(--text-dim); font-size: 0.75rem;">Vault Storage</div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: var(--amber);" id="cl-total-storage">0 MB</div>
+            <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 2px;" id="cl-segments-count">0 Segments</div>
+          </div>
+          <div style="background: rgba(0,0,0,0.3); padding: 14px; border-radius: 8px;">
+            <div style="color: var(--text-dim); font-size: 0.75rem;">Locality Rate</div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: var(--gold);" id="cl-locality-rate">0.0%</div>
+            <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 2px;" id="cl-tasks-running">0 Tasks Running</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Connected Fleet Nodes Table -->
+      <div class="card">
+        <div class="card-title">
+          <span>Connected Fleet Nodes (§4.1 Fleet Clustering)</span>
+          <span style="font-size: 0.8rem; color: var(--text-dim);" id="fleet-table-count">0 Active Nodes</span>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="fleet-table">
+            <thead>
+              <tr>
+                <th>Node ID</th>
+                <th>Subnet Zone</th>
+                <th>Sandbox Tier</th>
+                <th>Cache Locality</th>
+                <th>Reputation (Credit)</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="fleet-table-body">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 24px;">No nodes currently connected to Central Coordinator. Start donor worker above to join cluster.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Active Global Job Tracker -->
+      <div class="card">
+        <div class="card-title">
+          <span>Global Active Cluster Job</span>
+          <span class="badge badge-blue" id="cl-active-job-badge">IDLE</span>
+        </div>
+        <div style="margin-bottom: 12px;">
+          <span style="font-size: 0.82rem; color: var(--text-dim);">Job Title:</span>
+          <strong id="cl-active-job-title" style="color: var(--text); margin-left: 6px;">No active cluster jobs</strong>
+        </div>
+
+        <div class="dag-grid" id="cl-stages-grid">
+          <div class="dag-stage" id="cl-stage-1">
+            <div class="dag-stage-header"><span>STAGE 1</span><span class="badge badge-dim" id="cl-s1-badge">IDLE</span></div>
+            <div class="dag-stage-name">Ingestion & Sharding</div>
+            <div class="dag-stage-desc" id="cl-s1-desc">FastCDC chunking & Merkle index</div>
+          </div>
+          <div class="dag-stage" id="cl-stage-2">
+            <div class="dag-stage-header"><span>STAGE 2</span><span class="badge badge-dim" id="cl-s2-badge">IDLE</span></div>
+            <div class="dag-stage-name">PACMan Locality</div>
+            <div class="dag-stage-desc" id="cl-s2-desc">Delay scheduling & convex match</div>
+          </div>
+          <div class="dag-stage" id="cl-stage-3">
+            <div class="dag-stage-header"><span>STAGE 3</span><span class="badge badge-dim" id="cl-s3-badge">IDLE</span></div>
+            <div class="dag-stage-name">Grid Execution</div>
+            <div class="dag-stage-desc" id="cl-s3-desc">Deterministic sandbox execution</div>
+          </div>
+          <div class="dag-stage" id="cl-stage-4">
+            <div class="dag-stage-header"><span>STAGE 4</span><span class="badge badge-dim" id="cl-s4-badge">IDLE</span></div>
+            <div class="dag-stage-name">Spot-Check & Receipt</div>
+            <div class="dag-stage-desc" id="cl-s4-desc">Ed25519 verification & audit</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coordinator SCTP Event & Audit Stream -->
+      <div class="card">
+        <div class="card-title">
+          <span>Coordinator SCTP Event & Audit Stream</span>
+          <span class="badge badge-green">Live Control Plane</span>
+        </div>
+        <div class="log-box" id="cl-logs-box" style="height: 180px;">
+[Cluster] Waiting for cluster coordinator event stream...
+        </div>
+      </div>
+    </section>
   </main>
+
+  <!-- Receipts Modal -->
+  <div class="modal-overlay" id="receipts-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span style="font-size: 1rem; font-weight: 700; color: var(--cyan);">Signed Ed25519 Execution Receipts</span>
+        <button class="btn btn-sm" onclick="closeReceiptsModal()">✕ Close</button>
+      </div>
+      <div class="modal-body">
+        <div id="receipts-list"></div>
+      </div>
+    </div>
+  </div>
 
   <script>
     // Tab switching
@@ -564,9 +851,215 @@
       if (btn) btn.classList.add('active');
       const target = document.getElementById('mode-' + mode);
       if (target) target.classList.add('active');
+      if (mode === 'cluster') {
+        pollClusterFleet();
+      }
     }
 
-    // Drag and drop listeners
+    // Donor Worker Connection
+    function setWorkerCoord(url) {
+      document.getElementById('worker-coord-input').value = url;
+    }
+
+    function regenerateNodeID() {
+      const rand = Math.floor(Math.random() * 0xffff).toString(16).padStart(4, '0');
+      document.getElementById('worker-node-id-input').value = 'node-host-' + rand;
+    }
+
+    function addLocalResearcherKey() {
+      const pub = document.getElementById('researcher-pub-preview').getAttribute('data-fullpub');
+      if (pub) {
+        const inp = document.getElementById('worker-trusted-keys');
+        if (inp.value) {
+          if (!inp.value.includes(pub)) inp.value += ', ' + pub;
+        } else {
+          inp.value = pub;
+        }
+      }
+    }
+
+    async function connectWorker() {
+      const cfg = {
+        coordinator_url: document.getElementById('worker-coord-input').value,
+        node_id: document.getElementById('worker-node-id-input').value,
+        subnet_zone: document.getElementById('worker-zone-select').value,
+        trusted_keys: document.getElementById('worker-trusted-keys').value.split(',').map(s => s.trim()).filter(Boolean),
+        allocated_cores: parseInt(document.getElementById('cpu-slider').value),
+        allocated_ram_mb: parseInt(document.getElementById('ram-slider').value) * 1024,
+        storage_quota_gb: parseInt(document.getElementById('storage-slider').value)
+      };
+
+      try {
+        const btn = document.getElementById('worker-connect-btn');
+        btn.textContent = "Connecting...";
+        const res = await fetch('/api/worker/connect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(cfg)
+        });
+        const st = await res.json();
+        updateWorkerUI(st);
+      } catch (err) {
+        console.error("Worker connect failed:", err);
+      }
+    }
+
+    async function disconnectWorker() {
+      try {
+        const res = await fetch('/api/worker/disconnect', { method: 'POST' });
+        const st = await res.json();
+        updateWorkerUI(st);
+      } catch (err) {
+        console.error("Worker disconnect failed:", err);
+      }
+    }
+
+    async function reconnectWorker() {
+      try {
+        const res = await fetch('/api/worker/reconnect', { method: 'POST' });
+        const st = await res.json();
+        updateWorkerUI(st);
+      } catch (err) {
+        console.error("Worker reconnect failed:", err);
+      }
+    }
+
+    function updateWorkerUI(st) {
+      if (!st) return;
+      const liveBadge = document.getElementById('worker-live-badge');
+      const pingBadge = document.getElementById('worker-ping-badge');
+      const topCoordBadge = document.getElementById('coord-status-badge');
+      const connectBtn = document.getElementById('worker-connect-btn');
+      const disconnectBtn = document.getElementById('worker-disconnect-btn');
+
+      if (st.connected) {
+        liveBadge.className = 'badge badge-green';
+        liveBadge.textContent = 'WS CONNECTED';
+        pingBadge.style.display = 'inline-block';
+        pingBadge.className = 'badge badge-blue';
+        pingBadge.textContent = (st.ping_latency_ms || 1) + ' ms';
+        topCoordBadge.className = 'badge badge-green';
+        topCoordBadge.textContent = 'WS: ' + (st.ping_latency_ms || 1) + 'ms';
+        connectBtn.style.display = 'none';
+        disconnectBtn.style.display = 'inline-flex';
+      } else if (st.connecting) {
+        liveBadge.className = 'badge badge-amber';
+        liveBadge.textContent = 'CONNECTING...';
+        pingBadge.style.display = 'none';
+        topCoordBadge.className = 'badge badge-amber';
+        topCoordBadge.textContent = 'WS: CONNECTING';
+        connectBtn.style.display = 'inline-flex';
+        connectBtn.textContent = 'Connecting...';
+        disconnectBtn.style.display = 'none';
+      } else {
+        liveBadge.className = 'badge badge-dim';
+        liveBadge.textContent = 'OFFLINE';
+        pingBadge.style.display = 'none';
+        topCoordBadge.className = 'badge badge-dim';
+        topCoordBadge.textContent = 'WS: DISCONNECTED';
+        connectBtn.style.display = 'inline-flex';
+        connectBtn.textContent = '🟢 Start & Connect Worker';
+        disconnectBtn.style.display = 'none';
+      }
+
+      if (st.tasks_assigned !== undefined) {
+        document.getElementById('worker-tasks-assigned').textContent = st.tasks_assigned;
+      }
+      if (st.receipts_signed !== undefined) {
+        document.getElementById('worker-receipts-signed').textContent = st.receipts_signed;
+      }
+      if (st.last_heartbeat) {
+        document.getElementById('worker-last-hb').textContent = st.last_heartbeat;
+      }
+      if (st.coordinator_url && document.activeElement !== document.getElementById('worker-coord-input')) {
+        document.getElementById('worker-coord-input').value = st.coordinator_url;
+      }
+      if (st.node_id && document.activeElement !== document.getElementById('worker-node-id-input')) {
+        document.getElementById('worker-node-id-input').value = st.node_id;
+      }
+    }
+
+    async function viewWorkerReceipts() {
+      try {
+        const res = await fetch('/api/worker/receipts');
+        const list = await res.json();
+        const container = document.getElementById('receipts-list');
+        container.innerHTML = '';
+
+        if (!list || list.length === 0) {
+          container.innerHTML = '<div style="color: var(--text-dim); text-align: center; padding: 30px;">No execution receipts signed yet. Complete a task to generate an Ed25519 receipt.</div>';
+        } else {
+          list.forEach((rc, i) => {
+            const card = document.createElement('div');
+            card.style.background = 'rgba(0,0,0,0.4)';
+            card.style.border = '1px solid rgba(56, 189, 248, 0.2)';
+            card.style.borderRadius = '8px';
+            card.style.padding = '12px';
+            card.style.marginBottom = '10px';
+            card.innerHTML = `
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                <strong style="color: var(--cyan);">Receipt #${i + 1} - Task: ${rc.task_id}</strong>
+                <span class="badge badge-green">Ed25519 SIGNED</span>
+              </div>
+              <div style="font-size: 0.78rem; color: var(--text-dim); line-height: 1.4;">
+                <div>Worker Node: <code>${rc.node_id}</code></div>
+                <div>Output CID: <code style="color: var(--amber);">${rc.output_cid}</code></div>
+                <div>Fuel Consumed: <strong>${(rc.fuel_consumed || 0).toLocaleString()}</strong> | Duration: <strong>${rc.execution_duration_ms || 0} ms</strong></div>
+                <div style="margin-top: 4px;">Signature: <code style="color: var(--emerald); word-break: break-all;">${rc.signature || ''}</code></div>
+              </div>
+            `;
+            container.appendChild(card);
+          });
+        }
+        document.getElementById('receipts-modal').style.display = 'flex';
+      } catch (e) {
+        console.error("View receipts failed:", e);
+      }
+    }
+
+    function closeReceiptsModal() {
+      document.getElementById('receipts-modal').style.display = 'none';
+    }
+
+    // Researcher Studio & Dispatch Target
+    function setTargetCoord(url) {
+      document.getElementById('target-coord-input').value = url;
+      pingTargetCoordinator();
+    }
+
+    function onDispatchTargetChange() {
+      const isRemote = document.querySelector('input[name="dispatch-target"]:checked').value === 'remote';
+      const btn = document.getElementById('dispatch-submit-btn');
+      if (isRemote) {
+        btn.innerHTML = '<span>🚀</span> Sign with Ed25519 & Dispatch to Cluster';
+      } else {
+        btn.innerHTML = '<span>⚡</span> Sign with Ed25519 & Execute Locally';
+      }
+    }
+
+    async function pingTargetCoordinator() {
+      const coord = document.getElementById('target-coord-input').value;
+      const badge = document.getElementById('target-health-badge');
+      badge.className = 'badge badge-amber';
+      badge.textContent = 'Pinging...';
+
+      try {
+        const res = await fetch('/api/cluster/status?coordinator=' + encodeURIComponent(coord));
+        const st = await res.json();
+        if (st && st.nodes_online !== undefined && !st.error) {
+          badge.className = 'badge badge-green';
+          badge.textContent = `OK 200 (${st.nodes_online} Nodes Online)`;
+        } else {
+          badge.className = 'badge badge-rose';
+          badge.textContent = 'Unreachable';
+        }
+      } catch (e) {
+        badge.className = 'badge badge-rose';
+        badge.textContent = 'Error';
+      }
+    }
+
+    // Ingestion Drag and Drop
     const dropzone = document.getElementById('dataset-dropzone');
     dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
     dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
@@ -581,6 +1074,17 @@
     function handleFileSelect(e) {
       if (e.target.files && e.target.files.length > 0) {
         uploadFile(e.target.files[0]);
+      }
+    }
+
+    async function loadSampleDataset(filename) {
+      try {
+        const res = await fetch('/api/load-sample?file=' + encodeURIComponent(filename));
+        if (!res.ok) throw new Error("Sample file not found");
+        const blob = await res.blob();
+        uploadFile(new File([blob], filename));
+      } catch (err) {
+        console.error("Failed to load sample dataset:", err);
       }
     }
 
@@ -600,6 +1104,7 @@
             document.getElementById('res-chunks').textContent = data.chunk_count + ' chunks';
             document.getElementById('res-cid').textContent = data.dataset_cid;
             document.getElementById('task-dataset-cid').value = data.dataset_cid;
+            document.getElementById('manifest-pub-result').style.display = 'none';
             pollVault();
           }
         } catch (err) {
@@ -609,8 +1114,64 @@
       reader.readAsArrayBuffer(file);
     }
 
+    async function publishDatasetManifest() {
+      const cid = document.getElementById('res-cid').textContent;
+      const coord = document.getElementById('target-coord-input').value;
+      const btn = document.getElementById('publish-manifest-btn');
+      btn.textContent = "Publishing...";
+
+      try {
+        const res = await fetch('/api/publish-manifest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dataset_cid: cid, coordinator_url: coord })
+        });
+        const resp = await res.json();
+        if (resp && resp.status === 'REGISTERED') {
+          btn.textContent = "✓ Published";
+          const resEl = document.getElementById('manifest-pub-result');
+          resEl.style.display = 'block';
+          resEl.textContent = `✓ Manifest ${resp.dataset_cid.substring(0, 12)} registered in cluster fleet (${resp.segments} segments dispersed)`;
+        } else {
+          btn.textContent = "Failed";
+        }
+      } catch (e) {
+        btn.textContent = "Error";
+      }
+    }
+
     let selectedCodeBase64 = "";
     let selectedCodeFilename = "";
+
+    function resetCodePayload() {
+      selectedCodeBase64 = "";
+      selectedCodeFilename = "";
+      const inp = document.getElementById('code-input');
+      if (inp) inp.value = "";
+      onTierSelectChange();
+    }
+
+    function onTierSelectChange() {
+      const tier = document.getElementById('task-tier-select').value;
+      const ep = document.getElementById('task-entrypoint');
+      const lbl = document.getElementById('code-filename-label');
+      if (tier === '2') {
+        if (!selectedCodeFilename) {
+          ep.value = 'tier2_task.py';
+          lbl.textContent = 'Default: test_data/tier2_task.py (Hardened Container)';
+        }
+      } else if (tier === '3') {
+        if (!selectedCodeFilename) {
+          ep.value = 'tier3_task.exe';
+          lbl.textContent = 'Default: test_data/tier3_task.exe (Institutional Signed Binary)';
+        }
+      } else {
+        if (!selectedCodeFilename) {
+          ep.value = 'task.wasm';
+          lbl.textContent = 'Default: Built-in Genomic Analyzer (task.wasm)';
+        }
+      }
+    }
 
     function handleCodeSelect(e) {
       if (e.target.files && e.target.files.length > 0) {
@@ -629,6 +1190,9 @@
 
     async function handleTaskSubmit(e) {
       e.preventDefault();
+      const isRemote = document.querySelector('input[name="dispatch-target"]:checked').value === 'remote';
+      const targetCoord = document.getElementById('target-coord-input').value;
+
       const payload = {
         name: document.getElementById('task-name-input').value,
         min_tier: parseInt(document.getElementById('task-tier-select').value),
@@ -636,7 +1200,9 @@
         fuel_limit: parseInt(document.getElementById('task-fuel-input').value),
         entrypoint: document.getElementById('task-entrypoint').value || "task.wasm",
         code_base64: selectedCodeBase64,
-        code_filename: selectedCodeFilename
+        code_filename: selectedCodeFilename,
+        target: isRemote ? "remote" : "local",
+        coordinator_url: targetCoord
       };
 
       try {
@@ -741,6 +1307,15 @@
       }).catch(() => {});
     }
 
+    function downloadOutputFile() {
+      const text = document.getElementById('output-payload-box').textContent;
+      const blob = new Blob([text], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'unicompute_output.json';
+      a.click();
+    }
+
     // Polling Telemetry
     async function pollStats() {
       try {
@@ -775,16 +1350,31 @@
           document.getElementById('rule-battery').checked = s.auto_pause_battery;
           document.getElementById('rule-gaming').checked = s.pause_gaming;
           document.getElementById('rule-hours').checked = s.campus_hours;
+
+          if (s.node_id && !document.getElementById('worker-node-id-input').value) {
+            document.getElementById('worker-node-id-input').value = s.node_id;
+          }
+          if (s.zone) {
+            document.getElementById('worker-zone-select').value = s.zone;
+          }
+        }
+
+        if (s.worker_status) {
+          updateWorkerUI(s.worker_status);
         }
 
         if (s.researcher_pub_key) {
           const previewEl = document.getElementById('researcher-pub-preview');
           if (previewEl) {
             previewEl.textContent = s.researcher_pub_key.substring(0, 16) + '... (Ed25519 Verified)';
+            previewEl.setAttribute('data-fullpub', s.researcher_pub_key);
+          }
+          const trustedInput = document.getElementById('worker-trusted-keys');
+          if (trustedInput && !trustedInput.value) {
+            trustedInput.value = s.researcher_pub_key;
           }
         }
 
-        document.getElementById('node-id').textContent = s.node_id || 'node-local';
         document.getElementById('donor-credit-score').textContent = (s.credit_score || 0.964).toFixed(3);
         document.getElementById('donor-zone').textContent = s.zone || 'Campus Lab';
         document.getElementById('donor-power-source').textContent = s.power_source || 'AC Mains';
@@ -858,7 +1448,7 @@
             if (st && el) {
               el.className = 'dag-stage ' + st.status;
               stat.textContent = st.status.toUpperCase();
-              stat.className = 'badge ' + (st.status === 'completed' ? 'badge-green' : (st.status === 'running' ? 'badge-blue' : 'badge-amber'));
+              stat.className = 'badge ' + (st.status === 'completed' ? 'badge-green' : (st.status === 'running' ? 'badge-blue' : 'badge-dim'));
               if (st.description) {
                 desc.textContent = st.duration ? `[${st.duration}] ${st.description}` : st.description;
               }
@@ -898,9 +1488,18 @@
         }
         if (!v) return;
 
-        document.getElementById('vault-segment-id').textContent = v.segment_id || 'seg_00';
+        document.getElementById('vault-segment-id').textContent = v.segment_id || 'No active segment';
         document.getElementById('safety-label').textContent = v.online_shards + ' / ' + v.total_shards + ' Shards Online (Safety: ' + (v.safety_margin_percent || 0).toFixed(1) + '%)';
-        document.getElementById('safety-bar').style.width = Math.min(100, Math.max(5, v.safety_margin_percent || 0)) + '%';
+        document.getElementById('safety-bar').style.width = Math.min(100, Math.max(0, v.safety_margin_percent || 0)) + '%';
+
+        const summaryBadge = document.getElementById('shards-summary-badge');
+        if (v.total_shards > 0) {
+          summaryBadge.className = 'badge badge-green';
+          summaryBadge.textContent = 'ALL SEGMENTS HEALTHY (RS 32/80)';
+        } else {
+          summaryBadge.className = 'badge badge-dim';
+          summaryBadge.textContent = 'AWAITING INGESTION';
+        }
 
         // Render 80-shard matrix
         const matrix = document.getElementById('cauchy-matrix');
@@ -927,7 +1526,7 @@
         }
 
         // Audit logs
-        if (v.audit_logs) {
+        if (v.audit_logs && v.audit_logs.length > 0) {
           document.getElementById('audit-log-box').textContent = v.audit_logs.join('\n');
         }
       } catch (e) {}
@@ -942,10 +1541,123 @@
     }
     function hideTooltip() { tipEl.style.display = 'none'; }
 
-    // Start real-time polling
+    // Cluster Fleet & Global Jobs Monitoring
+    function setClusterCoordTarget(url) {
+      document.getElementById('cluster-coord-target').value = url;
+      pollClusterFleet();
+    }
+
+    async function pollClusterFleet() {
+      const coord = document.getElementById('cluster-coord-target').value;
+      const statusBadge = document.getElementById('cluster-coord-status-badge');
+
+      try {
+        const res = await fetch('/api/cluster/status?coordinator=' + encodeURIComponent(coord));
+        const st = await res.json();
+
+        if (st && !st.error) {
+          statusBadge.className = 'badge badge-green';
+          statusBadge.textContent = '🟢 ONLINE';
+
+          document.getElementById('cl-nodes-count').textContent = st.nodes_online || 0;
+          document.getElementById('cl-nodes-breakdown').textContent = `${st.lab_nodes || 0} Lab / ${st.laptop_nodes || 0} Dorm`;
+          document.getElementById('cl-total-cores').textContent = st.total_cores || 0;
+          document.getElementById('cl-total-ram').textContent = Math.round((st.total_ram_mb || 0) / 1024) + ' GB';
+          document.getElementById('cl-total-storage').textContent = ((st.storage_bytes || 0) / (1024 * 1024)).toFixed(1) + ' MB';
+          document.getElementById('cl-segments-count').textContent = `${st.total_segments || 0} Segments (${st.online_shards || 0} Shards Online)`;
+          document.getElementById('cl-locality-rate').textContent = ((st.locality_rate || 0) * 100).toFixed(1) + '%';
+          document.getElementById('cl-tasks-running').textContent = `${st.tasks_running || 0} Tasks Running`;
+
+          // Fleet Table
+          if (!st.fleet || st.fleet.length === 0) {
+            try {
+              const fleetRes = await fetch('/api/cluster/fleet?coordinator=' + encodeURIComponent(coord));
+              const fleetData = await fleetRes.json();
+              if (fleetData && fleetData.fleet && fleetData.fleet.length > 0) {
+                st.fleet = fleetData.fleet;
+              }
+            } catch (e) {}
+          }
+
+          const tbody = document.getElementById('fleet-table-body');
+          const fleetCount = document.getElementById('fleet-table-count');
+          if (st.fleet && st.fleet.length > 0) {
+            fleetCount.textContent = `${st.fleet.length} Connected Nodes`;
+            tbody.innerHTML = '';
+            st.fleet.forEach(n => {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td><strong style="color: var(--cyan);">${n.id}</strong></td>
+                <td><span style="color: var(--purple);">${n.zone || 'Campus Lab'}</span></td>
+                <td><span class="badge ${n.tier === 3 ? 'badge-gold' : 'badge-blue'}">Tier ${n.tier}</span></td>
+                <td><span style="color: ${n.locality.includes('Tier') ? 'var(--emerald)' : 'var(--text-dim)'};">${n.locality}</span></td>
+                <td><span style="color: var(--emerald); font-weight: 700;">${(n.credit || 0.964).toFixed(3)}</span></td>
+                <td><span class="badge ${n.online ? 'badge-green' : 'badge-rose'}">${n.online ? 'ONLINE' : 'OFFLINE'}</span></td>
+              `;
+              tbody.appendChild(tr);
+            });
+          } else {
+            fleetCount.textContent = '0 Connected Nodes';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-dim); padding: 24px;">No nodes currently connected. Start the local worker or remote nodes to see them here.</td></tr>';
+          }
+
+          // Active Job
+          if (st.active_job) {
+            document.getElementById('cl-active-job-badge').textContent = (st.active_job.status || 'RUNNING').toUpperCase();
+            document.getElementById('cl-active-job-badge').className = 'badge ' + (st.active_job.status === 'completed' ? 'badge-green' : 'badge-blue');
+            document.getElementById('cl-active-job-title').textContent = `${st.active_job.title} (Node: ${st.active_job.worker_node_id || 'Pending'})`;
+
+            if (st.active_job.stages) {
+              st.active_job.stages.forEach((stg, i) => {
+                const el = document.getElementById(`cl-stage-${i + 1}`);
+                const b = document.getElementById(`cl-s${i + 1}-badge`);
+                const d = document.getElementById(`cl-s${i + 1}-desc`);
+                if (el && b && stg) {
+                  el.className = 'dag-stage ' + (stg.status || 'pending');
+                  b.textContent = (stg.status || 'PENDING').toUpperCase();
+                  b.className = 'badge ' + (stg.status === 'completed' ? 'badge-green' : (stg.status === 'running' ? 'badge-blue' : 'badge-dim'));
+                  if (stg.description) d.textContent = stg.description;
+                }
+              });
+            }
+          } else {
+            document.getElementById('cl-active-job-badge').textContent = 'IDLE';
+            document.getElementById('cl-active-job-badge').className = 'badge badge-dim';
+            document.getElementById('cl-active-job-title').textContent = 'No active cluster jobs';
+          }
+
+          // SCTP and PoR Audit Stream Logs
+          let allLogs = [];
+          if (st.logs && st.logs.length > 0) allLogs = allLogs.concat(st.logs);
+          if (st.audit_logs && st.audit_logs.length > 0) allLogs = allLogs.concat(st.audit_logs.map(l => "[PoR Audit] " + l));
+          if (allLogs.length > 0) {
+            document.getElementById('cl-logs-box').textContent = allLogs.join('\n');
+          }
+        } else {
+          statusBadge.className = 'badge badge-rose';
+          statusBadge.textContent = '🔴 OFFLINE';
+          document.getElementById('cl-logs-box').textContent = `[Coordinator Unreachable] Cannot connect to ${coord}`;
+        }
+      } catch (err) {
+        statusBadge.className = 'badge badge-rose';
+        statusBadge.textContent = '🔴 ERROR';
+      }
+    }
+
+    // Prevent default drag/drop behavior on whole window to avoid WebView2 navigating to dropped file
+    window.addEventListener('dragover', (e) => e.preventDefault());
+    window.addEventListener('drop', (e) => e.preventDefault());
+
+    // Start real-time polling loops
     setInterval(pollStats, 1000);
     setInterval(pollDAG, 1000);
     setInterval(pollVault, 2000);
+    setInterval(() => {
+      if (document.getElementById('cluster-auto-refresh').checked && document.getElementById('mode-cluster').classList.contains('active')) {
+        pollClusterFleet();
+      }
+    }, 2000);
+
     pollStats();
     pollDAG();
     pollVault();

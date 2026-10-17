@@ -6,10 +6,16 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 
 	"unicompute/pkg/gui"
 )
+
+func init() {
+	// Lock main goroutine to OS thread for Windows OLE/COM & WebView2 message pump
+	runtime.LockOSThread()
+}
 
 func main() {
 	portFlag := flag.Int("port", 9099, "Loopback HTTP port for embedded Studio UI")

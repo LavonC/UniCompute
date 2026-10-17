@@ -77,9 +77,12 @@ func (s *Tier3NativeSandbox) Execute(ctx context.Context, req *ExecutionRequest)
 		return nil, fmt.Errorf("%w: key %s not recognized by institution (fail-closed)", ErrUnauthorizedBinary, req.InstitutionalPubKey)
 	}
 
-	// Verify Ed25519 signature over binary hash
+	// Verify Ed25519 signature over binary hash or manifest digest
 	binaryHash := sha256.Sum256(req.CodePayload)
 	valid, errSig := crypto.VerifySignatureHex(req.InstitutionalPubKey, binaryHash[:], req.SignedBinarySig)
+	if (!valid || errSig != nil) && len(req.ManifestDigest) > 0 {
+		valid, errSig = crypto.VerifySignatureHex(req.InstitutionalPubKey, req.ManifestDigest, req.SignedBinarySig)
+	}
 	if errSig != nil || !valid {
 		return nil, fmt.Errorf("%w: signature verification failed", ErrUnauthorizedBinary)
 	}

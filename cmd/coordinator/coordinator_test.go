@@ -390,5 +390,22 @@ func TestCoordinatorClusterStatusAPI(t *testing.T) {
 	if len(resp2.Fleet) != 1 || resp2.Fleet[0].ID != "node-status-01" {
 		t.Errorf("Expected node-status-01 in fleet, got %+v", resp2.Fleet)
 	}
+
+	// Test /api/cluster/fleet endpoint
+	reqFleet := httptest.NewRequest(http.MethodGet, "/api/cluster/fleet", nil)
+	wFleet := httptest.NewRecorder()
+	coord.handleClusterFleet(wFleet, reqFleet)
+	if wFleet.Code != http.StatusOK {
+		t.Fatalf("Expected 200 OK from /api/cluster/fleet, got %d", wFleet.Code)
+	}
+	var fleetResp struct {
+		Fleet []web.FleetNodeStatus `json:"fleet"`
+		Count int                   `json:"count"`
+	}
+	_ = json.NewDecoder(wFleet.Body).Decode(&fleetResp)
+	if fleetResp.Count != 1 || len(fleetResp.Fleet) != 1 || fleetResp.Fleet[0].ID != "node-status-01" {
+		t.Errorf("Expected 1 node in fleet response, got %+v", fleetResp)
+	}
 }
+
 
